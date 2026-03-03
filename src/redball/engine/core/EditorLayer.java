@@ -9,6 +9,8 @@ import imgui.type.ImString;
 import imgui.flag.ImGuiCol;
 import org.dyn4j.geometry.Rectangle;
 import org.reflections.Reflections;
+import redball.engine.core.Logger.LogCapture;
+import redball.engine.core.Logger.LogLine;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.*;

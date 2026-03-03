@@ -1,10 +1,10 @@
 package redball.engine.core;
 
+import redball.engine.core.Logger.LogCapture;
 import redball.engine.input.KeyboardInput;
 import redball.engine.renderer.Shader;
 import redball.engine.renderer.WindowManager;
 import redball.engine.utils.AssetPool;
-import redball.engine.core.EditorLayer;
 
 import java.lang.reflect.InvocationTargetException;
 

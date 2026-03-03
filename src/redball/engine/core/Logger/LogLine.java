@@ -1,4 +1,4 @@
-package redball.engine.core;
+package redball.engine.core.Logger;
 
 public class LogLine {
     private String message;
