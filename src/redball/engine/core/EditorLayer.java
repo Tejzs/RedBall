@@ -210,9 +210,11 @@ public class EditorLayer {
         imGuiGl3.renderDrawData(ImGui.getDrawData());
     }
 
-    void renderViewPort() {
+    void renderViewPort() throws IllegalAccessException {
         ImGui.begin("Viewport");
-
+        if (ImGui.button("Save")) {
+            Serialization.save();
+        }
         ImVec2 size = ImGui.getContentRegionAvail();
 
         float frameBufferWidth = RenderManager.getFrameBuffer().getWidth();

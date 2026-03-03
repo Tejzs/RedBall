@@ -1,0 +1,141 @@
+{
+  "name": "Camera",
+  "component": {
+    "Transform": {
+      "position": {
+        "x": -153.539,
+        "y": 19.573303,
+        "z": 0.0
+      },
+      "rotation": 0.0,
+      "scale": {
+        "x": 250.0,
+        "y": 250.0,
+        "z": 250.0
+      }
+    },
+    "CameraComponent": {},
+    "Tag": {
+      "tag": "Camera"
+    },
+    "CameraFollow": {}
+  }
+}{
+  "name": "BackGround",
+  "component": {
+    "Transform": {
+      "position": {
+        "x": 806.461,
+        "y": 559.5733,
+        "z": -1.0
+      },
+      "rotation": 0.0,
+      "scale": {
+        "x": 1920.0,
+        "y": 1080.0,
+        "z": 1.0
+      }
+    },
+    "SpriteRenderer": {
+      "filePath": "src/redball/example/assets/background.png"
+    }
+  }
+}{
+  "name": "Ball",
+  "component": {
+    "Transform": {
+      "position": {
+        "x": 400.0,
+        "y": 800.0,
+        "z": -1.0
+      },
+      "rotation": 90.0,
+      "scale": {
+        "x": 100.0,
+        "y": 100.0,
+        "z": 1.0
+      }
+    },
+    "Rigidbody": {
+      "mass": 0
+    }
+  }
+}{
+  "name": "GroundL",
+  "component": {
+    "Transform": {
+      "position": {
+        "x": 150.0,
+        "y": 250.0,
+        "z": -1.0
+      },
+      "rotation": -15.0,
+      "scale": {
+        "x": 960.0,
+        "y": 20.0,
+        "z": 1.0
+      }
+    },
+    "Rigidbody": {
+      "mass": 0
+    },
+    "SpriteRenderer": {
+      "filePath": "src/redball/example/assets/ground.png"
+    },
+    "Tag": {
+      "tag": "Ground"
+    }
+  }
+}{
+  "name": "GroundC",
+  "component": {
+    "Transform": {
+      "position": {
+        "x": 1000.0,
+        "y": 150.0,
+        "z": -1.0
+      },
+      "rotation": 0.0,
+      "scale": {
+        "x": 960.0,
+        "y": 20.0,
+        "z": 1.0
+      }
+    },
+    "Rigidbody": {
+      "mass": 0
+    },
+    "SpriteRenderer": {
+      "filePath": "src/redball/example/assets/ground.png"
+    },
+    "Tag": {
+      "tag": "Ground"
+    }
+  }
+}{
+  "name": "GroundR",
+  "component": {
+    "Transform": {
+      "position": {
+        "x": 1900.0,
+        "y": 250.0,
+        "z": -1.0
+      },
+      "rotation": 15.0,
+      "scale": {
+        "x": 960.0,
+        "y": 20.0,
+        "z": 1.0
+      }
+    },
+    "Rigidbody": {
+      "mass": 0
+    },
+    "SpriteRenderer": {
+      "filePath": "src/redball/example/assets/ground.png"
+    },
+    "Tag": {
+      "tag": "Ground"
+    }
+  }
+}
