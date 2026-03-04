@@ -210,7 +210,7 @@ public class EditorLayer {
         imGuiGl3.renderDrawData(ImGui.getDrawData());
     }
 
-    void renderViewPort() throws IllegalAccessException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException {
+    void renderViewPort() {
         ImGui.begin("Viewport");
         if (ImGui.button("Save")) {
             AssetManager.getINSTANCE().saveScene();

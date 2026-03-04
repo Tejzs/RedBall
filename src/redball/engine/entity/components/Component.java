@@ -2,7 +2,9 @@ package redball.engine.entity.components;
 
 import redball.engine.entity.GameObject;
 
-public abstract class Component {
+import java.io.Serializable;
+
+public abstract class Component implements Serializable {
     public GameObject gameObject = null;
     private boolean isDirty = true;
 

@@ -2,11 +2,12 @@ package redball.engine.entity;
 
 import redball.engine.entity.components.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class GameObject {
+public class GameObject implements Serializable {
     // Name of the gameobject
     private String name;
     private UUID id = UUID.randomUUID();

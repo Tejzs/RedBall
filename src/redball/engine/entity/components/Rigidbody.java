@@ -13,11 +13,10 @@ import java.util.List;
 import static redball.engine.core.PhysicsSystem.PPM;
 
 public class Rigidbody extends Component {
-    private Body body;
+    private transient Body body = new Body();
     public int mass = 0;
 
     public Rigidbody() {
-        body = new Body();
         this.body.setUserData(this);
     }
 

@@ -125,4 +125,8 @@ public class ECSWorld {
     public static List<GameObject> getGameObjects() {
         return gameObjects;
     }
+
+    public static void setGameObjects(List<GameObject> gameObjects) {
+        ECSWorld.gameObjects = gameObjects;
+    }
 }

@@ -1,7 +1,6 @@
 package redball.engine.renderer.texture;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TextureManager {
     private static Map<String, Texture> textureMap = new HashMap<>();
@@ -22,9 +21,13 @@ public class TextureManager {
         }
     }
 
-    public static void bindTextures() {
-        for (Texture texture : textureMap.values()) {
-            texture.bindTexture();
+    public static Collection<String> listBoundTextures() {
+        return textureMap.keySet();
+    }
+
+    public static void reBindAllTextures(Collection<String> paths) {
+        for (String path : paths) {
+            getTexture(path);
         }
     }
 }

@@ -1,5 +1,7 @@
 package redball.engine.core;
 
+import redball.engine.save.SaveManager;
+
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 
@@ -16,30 +18,15 @@ public class AssetManager {
     }
 
     public void saveScene() {
-        BufferedWriter sceneWriter = null;
-        try {
-            sceneWriter = new BufferedWriter(new FileWriter(scenesDirectory + "Scene.scene"));
-            sceneWriter.write(Serialization.serialize());
-            sceneWriter.close();
-        } catch (IOException | IllegalAccessException e) {
-            System.out.println("ERROR:" + e);
-        }
+        SaveManager.save();
     }
 
-    public void loadScene() throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        BufferedReader sceneReader = null;
-        String scene = "";
-        try {
-            sceneReader = new BufferedReader(new FileReader(scenesDirectory + "Scene.scene"));
-            String line;
-            while ((line = sceneReader.readLine()) != null) {
-                scene += line;
-            }
-        } catch (IOException e) {
-            System.out.println("ERROR:" + e);
-        }
-        Serialization.deserialize(scene);
-        System.out.println("d");
+    public void loadScene() {
+        SaveManager.loadScene();
+    }
+
+    public static String getScenesDirectory() {
+        return scenesDirectory;
     }
 
     public static String getWorkingDirectory() {

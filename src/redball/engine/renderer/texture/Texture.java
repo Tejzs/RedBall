@@ -1,5 +1,6 @@
 package redball.engine.renderer.texture;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -13,7 +14,7 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 
-public class Texture {
+public class Texture implements Serializable {
     private static int usedTexSlots = 1;
     private static int maxSlots = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
     private static int[] texSlots = new int[maxSlots];
@@ -63,7 +64,7 @@ public class Texture {
             GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, format, this.width, this.height, 0, format, GL11.GL_UNSIGNED_BYTE, textureImg);
             STBImage.stbi_image_free(textureImg);
         } else {
-            System.err.println("Failed to load texture: " + filePath);
+            System.err.println("Failed to loadScene texture: " + filePath);
             System.err.println(STBImage.stbi_failure_reason());
         }
     }

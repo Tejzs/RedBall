@@ -4,7 +4,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-public class Camera {
+import java.io.Serializable;
+
+public class Camera implements Serializable {
     private Matrix4f projection, view;
     private Vector2f position;
 
