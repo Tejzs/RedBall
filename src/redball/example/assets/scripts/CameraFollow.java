@@ -6,8 +6,11 @@ import redball.engine.entity.components.Component;
 import redball.engine.entity.components.Transform;
 
 import java.io.IOException;
+import java.io.Serial;
 
 public class CameraFollow extends Component {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public Transform camT;
     public Transform ballT;
@@ -15,11 +18,6 @@ public class CameraFollow extends Component {
 
     public GameObject ball;
     public GameObject background;
-
-    public CameraFollow(GameObject ball, GameObject back) {
-        this.ball = ball;
-        this.background = back;
-    }
 
     @Override
     public void start() {

@@ -1,6 +1,7 @@
 package redball.engine.entity;
 
 import redball.engine.entity.components.Component;
+import redball.engine.entity.components.Rigidbody;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -10,9 +11,8 @@ import java.util.UUID;
 public class GameObject implements Serializable {
     // Name of the gameobject
     private String name;
-    private UUID id = UUID.randomUUID();
     // List of all components
-    private List<Component> components;
+    private ArrayList<Component> components;
 
     /**
      * @description Creates new gameobject of given name.
@@ -105,7 +105,7 @@ public class GameObject implements Serializable {
         return name;
     }
 
-    public List<Component> getComponents() {
+    public ArrayList<Component> getComponents() {
         return components;
     }
 
@@ -116,9 +116,5 @@ public class GameObject implements Serializable {
             }
         }
         return false;
-    }
-
-    public UUID getId() {
-        return id;
     }
 }

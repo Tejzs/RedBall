@@ -1,15 +1,15 @@
-package redball.engine.core;
+package redball.engine.scene;
 
 import redball.engine.save.SaveManager;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 
 public class AssetManager {
     private static AssetManager INSTANCE;
-    private static String workingDirectory;
-    public static String scenesDirectory;
-    private static File file;
+    private String workingDirectory;
+    public String scenesDirectory;
+    private File file;
+    public String currentWorkingScene = "";
 
     public AssetManager(String directory) {
         workingDirectory = directory;
@@ -17,24 +17,16 @@ public class AssetManager {
         file = new File(workingDirectory);
     }
 
-    public void saveScene() {
-        SaveManager.save();
-    }
-
-    public void loadScene() {
-        SaveManager.loadScene();
-    }
-
-    public static String getScenesDirectory() {
+    public String getScenesDirectory() {
         return scenesDirectory;
     }
 
-    public static String getWorkingDirectory() {
+    public String getWorkingDirectory() {
         return workingDirectory;
     }
 
-    public static void setWorkingDirectory(String workingDirectory) {
-        AssetManager.workingDirectory = workingDirectory;
+    public void setWorkingDirectory(String workingDirectory) {
+        workingDirectory = workingDirectory;
     }
 
     public static void init(String workingDirectory) {
@@ -45,11 +37,11 @@ public class AssetManager {
         return INSTANCE;
     }
 
-    public static File getFile() {
+    public File getFile() {
         return file;
     }
 
-    public static void setFile(File file) {
-        AssetManager.file = file;
+    public void setFile(File file) {
+        this.file = file;
     }
 }

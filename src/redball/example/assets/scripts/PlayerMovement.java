@@ -6,8 +6,13 @@ import redball.engine.entity.components.Component;
 import redball.engine.entity.components.Rigidbody;
 import redball.engine.entity.components.Tag;
 import redball.engine.input.KeyboardInput;
+import redball.engine.scene.SceneManager;
+
+import java.io.Serial;
 
 public class PlayerMovement extends Component {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public Rigidbody ballBody;
     private boolean wasSpaceDown = false;
@@ -41,6 +46,10 @@ public class PlayerMovement extends Component {
             if (ballVelocity.x < maxSpeed) {
                 ballBody.getBody().applyForce(new Vector2(1000000 * dt, 0));
             }
+        }
+
+        if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_P)) {
+            SceneManager.switchScenes(0);
         }
     }
 }

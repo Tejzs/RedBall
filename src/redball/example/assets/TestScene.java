@@ -52,10 +52,6 @@ public class TestScene extends AbstractScene {
         groundR.addComponent(new SpriteRenderer(TextureManager.getTexture(TextureMap.TEST1)));
         groundR.addComponent(new Tag("Ground"));
 
-        camera.addComponent(new CameraFollow(ball, background));
-        RenderManager.prepare(camera);
-
-        ballRb.setCircleFixture();
         ballRb.setMass(100);
         ballRb.setBounce(0.1);
         ballRb.setFriction(0.2);
@@ -63,6 +59,9 @@ public class TestScene extends AbstractScene {
         groundLRb.setBodyType(BodyType.STATIC);
         groundCRb.setBodyType(BodyType.STATIC);
         groundRRb.setBodyType(BodyType.STATIC);
+        ballRb.setFixture(BodyFixture.CIRCLE);
+
+        RenderManager.prepare(camera);
     }
 
     @Override

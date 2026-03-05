@@ -12,15 +12,21 @@ import java.util.List;
 
 public class SaveObject implements Serializable {
     private final ArrayList<GameObject> gameObjects;
-    private final ArrayList<String> textures;
+
+    private List<String> textures;
 
     public SaveObject() {
         this.gameObjects = (ArrayList<GameObject>) ECSWorld.getGameObjects();
         this.textures = new ArrayList<>(TextureManager.listBoundTextures());
     }
 
+    public SaveObject(ArrayList<GameObject> gameObjects) {
+        this.gameObjects = gameObjects;
+    }
+
+
     public static SaveObject parseFrom(byte[] bytes) {
-        return (SaveObject) SerializationUtils.deserialize(bytes);
+        return SerializationUtils.deserialize(bytes);
     }
 
 
@@ -34,5 +40,9 @@ public class SaveObject implements Serializable {
 
     public Collection<String> getTextures() {
         return textures;
+    }
+
+    public void setTextures(List<String> textures) {
+        this.textures = textures;
     }
 }

@@ -2,7 +2,12 @@ package redball.engine.entity.components;
 
 import redball.engine.renderer.texture.Texture;
 
+import java.io.Serial;
+
 public class SpriteRenderer extends Component {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private Texture texture;
     public String filePath = "";
 

@@ -1,30 +1,77 @@
 package redball.engine.save;
 
 import org.apache.commons.io.IOUtils;
-import redball.engine.core.AssetManager;
+import org.joml.Vector3f;
+import redball.engine.core.Engine;
+import redball.engine.entity.components.*;
+import redball.engine.renderer.texture.Texture;
+import redball.engine.scene.AssetManager;
+import redball.engine.core.PhysicsSystem;
 import redball.engine.entity.ECSWorld;
+import redball.engine.entity.GameObject;
+import redball.engine.renderer.RenderManager;
 import redball.engine.renderer.texture.TextureManager;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class SaveManager {
     public static void save() {
         try (BufferedOutputStream sceneOut =
-                     new BufferedOutputStream(new FileOutputStream((AssetManager.getScenesDirectory() + "Scene.scene")))) {
+                     new BufferedOutputStream(new FileOutputStream((AssetManager.getINSTANCE().currentWorkingScene)))) {
             IOUtils.write(new SaveObject().toByteArray(), sceneOut);
         } catch (IOException e) {
             System.out.println("ERROR:" + e);
         }
     }
 
-    public static void loadScene() {
+    public static void loadScene(String scene) {
         try (BufferedInputStream sceneIn =
-                     new BufferedInputStream(new FileInputStream(AssetManager.getScenesDirectory() + "Scene.scene"))) {
+                     new BufferedInputStream(new FileInputStream(scene))) {
             SaveObject saveObject = SaveObject.parseFrom(IOUtils.toByteArray(sceneIn));
+            AssetManager.getINSTANCE().currentWorkingScene = scene;
+
+            if (PhysicsSystem.getWorld() != null) {
+                PhysicsSystem.clear();
+            }
+            ECSWorld.removeAll();
+            RenderManager.clear();
+            TextureManager.clear();
+
+            PhysicsSystem.init();
             ECSWorld.setGameObjects(saveObject.getGameObjects());
-            TextureManager.reBindAllTextures(saveObject.getTextures());
+
+            // reload all textures from file paths
+            for (GameObject go : ECSWorld.getGameObjects()) {
+                SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
+                Rigidbody rb = go.getComponent(Rigidbody.class);
+                if (rb != null) {
+                    rb.createBody();
+                }
+                if (sr != null && sr.getFilePath() != null) {
+                    sr.setTexture(TextureManager.getTexture(sr.getFilePath()));
+                }
+            }
+
+            RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void newScene(String sceneName) {
+        // create default camera
+        GameObject camera = new GameObject("Camera");
+        camera.addComponent(new Transform(new Vector3f(0, 0, 0), 0f, new Vector3f(1, 1, 1)));
+        camera.addComponent(new CameraComponent(Engine.getWindowManager().getWidth(), Engine.getWindowManager().getHeight()));
+        camera.addComponent(new Tag("Camera"));
+        ArrayList<GameObject> gameObjects = new ArrayList<>();
+        gameObjects.add(camera);
+        try (BufferedOutputStream sceneOut =
+                     new BufferedOutputStream(new FileOutputStream((AssetManager.getINSTANCE().getScenesDirectory() + sceneName)))) {
+            IOUtils.write(new SaveObject(gameObjects).toByteArray(), sceneOut);
+        } catch (IOException e) {
+            System.out.println("ERROR:" + e);
         }
     }
 }

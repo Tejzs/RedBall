@@ -3,9 +3,14 @@ package redball.engine.entity.components;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.io.Serial;
+
 import static redball.engine.core.PhysicsSystem.PPM;
 
 public class Transform extends Component {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public Vector3f position;
     public float rotation;
     public Vector3f scale;

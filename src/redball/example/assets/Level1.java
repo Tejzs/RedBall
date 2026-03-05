@@ -55,7 +55,7 @@ public class Level1 extends AbstractScene {
 
         RenderManager.prepare(camera);
 
-        ballRb.setCircleFixture();
+        ballRb.setFixture(BodyFixture.CIRCLE);
         ballRb.setMass(100);
         ballRb.setBounce(0.1);
         ballRb.setFriction(0.2);

@@ -1,9 +1,11 @@
 package redball.engine.renderer.texture;
 
+import redball.engine.renderer.RenderManager;
+
 import java.util.*;
 
 public class TextureManager {
-    private static Map<String, Texture> textureMap = new HashMap<>();
+    public static final TreeMap<String, Texture> textureMap = new TreeMap<>();
 
     private TextureManager() {}
 
@@ -25,9 +27,14 @@ public class TextureManager {
         return textureMap.keySet();
     }
 
-    public static void reBindAllTextures(Collection<String> paths) {
-        for (String path : paths) {
-            getTexture(path);
+    public static void bindTextures() {
+        for (Texture texture : textureMap.values()) {
+            texture.bindTexture();
         }
+    }
+
+    public static void clear() {
+        textureMap.clear();
+        Texture.resetSlotCounter();
     }
 }

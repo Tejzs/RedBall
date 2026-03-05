@@ -5,14 +5,18 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 import redball.engine.core.EditorLayer;
+import redball.engine.core.Engine;
 import redball.engine.core.PhysicsSystem;
 import redball.engine.entity.ECSWorld;
 import redball.engine.renderer.texture.Texture;
+import redball.engine.scene.AssetManager;
+import redball.engine.scene.SceneManager;
 import redball.engine.utils.AbstractScene;
 import redball.example.assets.Level1;
 import redball.example.assets.TestScene;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -76,28 +80,35 @@ public class WindowManager {
         int fps = 0;
 
         shader.use();
+        SceneManager.init();
+        SceneManager.loadDefault();
 
         while (!GLFW.glfwWindowShouldClose(window)) {
             double time = glfwGetTime();
             double deltaTime = time - lastTime;
             accumulator += deltaTime;
             lastTime = time;
-
-            // RENDER
-            while (accumulator >= physicsStep) {
-                PhysicsSystem.update((float) physicsStep);
-                accumulator -= physicsStep;
+            if (Engine.isPlaying) {
+                // RENDER
+                while (accumulator >= physicsStep) {
+                    PhysicsSystem.update((float) physicsStep);
+                    accumulator -= physicsStep;
+                }
+                // use if corrupt
+//                 scene.update((float) deltaTime);
+                ECSWorld.update(Objects.requireNonNull(ECSWorld.findGameObjectByTag("Camera")), (float) deltaTime);
+            } else {
+                accumulator = 0;
             }
-            scene.update((float) deltaTime);
             EditorLayer.getINSTANCE().renderDebug();
+            RenderManager.render(Objects.requireNonNull(ECSWorld.findGameObjectByTag("Camera")));
 
             // SWAP
             glfwPollEvents();
             glfwSwapBuffers(window);
-
             // FPS Counter
             if (time - lastSecond >= 1.0) {
-                setTitle("Red Ball. FPS: " + fps);
+                setTitle("Red Ball " + AssetManager.getINSTANCE().currentWorkingScene + " FPS: " + fps);
                 fps = 0;
                 lastSecond += 1.0;
             }

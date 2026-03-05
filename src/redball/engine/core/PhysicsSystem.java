@@ -20,4 +20,8 @@ public class PhysicsSystem {
     public static World<Body> getWorld() {
         return world;
     }
+
+    public static void clear() {
+        world.removeAllBodiesAndJoints();
+    }
 }

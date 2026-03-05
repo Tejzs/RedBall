@@ -1,5 +1,6 @@
 package redball.engine.entity;
 
+import redball.engine.entity.components.Component;
 import redball.engine.entity.components.Tag;
 import redball.engine.renderer.BatchRenderer;
 import redball.engine.renderer.RenderManager;
@@ -101,7 +102,7 @@ public class ECSWorld {
     }
 
     public static void removeAll() {
-        gameObjects.clear();
+        gameObjects = new ArrayList<>();
     }
 
     /**
@@ -113,7 +114,6 @@ public class ECSWorld {
         for (GameObject g : gameObjects) {
             g.update(dt);
         }
-        RenderManager.render(camera);
     }
 
     public static void start() {
@@ -128,5 +128,14 @@ public class ECSWorld {
 
     public static void setGameObjects(List<GameObject> gameObjects) {
         ECSWorld.gameObjects = gameObjects;
+    }
+
+    public static void initAll() {
+        for (GameObject go : gameObjects) {
+            // This calls Rigidbody.start() which re-creates and adds the body
+            for (Component component : go.getComponents()) {
+                component.start();
+            }
+        }
     }
 }

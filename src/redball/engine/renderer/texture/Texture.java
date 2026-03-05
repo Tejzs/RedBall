@@ -98,10 +98,7 @@ public class Texture implements Serializable {
         return filePath;
     }
 
-    public void bindToSlot(int slot) {
-        this.usedTexSlot = slot;
-        this.texSlot = texSlots[slot - 1];
-        glActiveTexture(texSlot);
-        glBindTexture(GL_TEXTURE_2D, texId);
+    public static void resetSlotCounter() {
+        usedTexSlots = 1;
     }
 }

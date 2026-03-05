@@ -26,11 +26,7 @@ public class RenderManager {
             BatchRenderer batch = new BatchRenderer(chunk);
             batch.prepare();
             batches.add(batch);
-            System.out.println("Total number of batches: " + batches.size());
-            System.out.println("Entity count: " + batch.entityCount);
-            System.out.println("Total entity count: " + gos.size());
         }
-        ECSWorld.start();
         camera.start();
     }
 

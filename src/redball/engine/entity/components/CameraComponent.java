@@ -4,8 +4,13 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import redball.engine.renderer.Camera;
 
+import java.io.Serial;
+
 // CameraComponent.java
 public class CameraComponent extends Component {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public Camera camera;
     public boolean isMain;
 

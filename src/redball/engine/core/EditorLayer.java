@@ -8,6 +8,8 @@ import imgui.type.ImBoolean;
 import imgui.type.ImString;
 import imgui.flag.ImGuiCol;
 import org.dyn4j.geometry.Rectangle;
+import org.dyn4j.geometry.Vector3;
+import org.joml.Vector3f;
 import org.reflections.Reflections;
 import redball.engine.core.Logger.LogCapture;
 import redball.engine.core.Logger.LogLine;
@@ -17,6 +19,8 @@ import redball.engine.entity.components.*;
 import redball.engine.entity.components.Component;
 import redball.engine.renderer.RenderManager;
 import redball.engine.renderer.texture.Texture;
+import redball.engine.save.SaveManager;
+import redball.engine.scene.AssetManager;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -44,6 +48,8 @@ public class EditorLayer {
     private final ImString renameBuffer = new ImString(256);
     private File renamingFile = null;
     private String spriteName = "";
+    private boolean showNewScenePopup = false;
+    private ImString sceneName = new ImString(256);
 
     public static void init(Long window) {
         INSTANCE = new EditorLayer(window);
@@ -138,6 +144,10 @@ public class EditorLayer {
         renderMenuBar();
 
         ImGui.begin("Hierarchy");
+        if (ImGui.button("Create GameObject")) {
+            GameObject g = ECSWorld.createGameObject("GameObject");
+            g.addComponent(new Transform(new Vector3f(0.0f, 0.0f, 0.0f), 0.0f, new Vector3f(250.0f)));
+        }
         for (GameObject go : ECSWorld.getGameObjects()) {
             if (ImGui.button(go.getName())) {
                 selected = go.getName();
@@ -177,7 +187,7 @@ public class EditorLayer {
             rigidBodyComponent(go);
             spriteRendererComponent(go);
 
-            ListIterator<Component> componentIterator = go.getComponents().listIterator();
+            Iterator<Component> componentIterator = go.getComponents().listIterator();
             while (componentIterator.hasNext()) {
                 Component c = componentIterator.next();
                 if (!(c instanceof Rigidbody) && !(c instanceof Transform) && !(c instanceof Tag) && !(c instanceof SpriteRenderer) && c != null) {
@@ -212,14 +222,19 @@ public class EditorLayer {
 
     void renderViewPort() {
         ImGui.begin("Viewport");
+
         if (ImGui.button("Save")) {
-            AssetManager.getINSTANCE().saveScene();
+            SaveManager.save();
         }
 
-        if (ImGui.button("Load")) {
-            ECSWorld.removeAll();
-            RenderManager.clear();
-            AssetManager.getINSTANCE().loadScene();
+        if (!Engine.isPlaying()) {
+            if (ImGui.button("Play")) {
+                Engine.onPlay();
+            }
+        } else {
+            if (ImGui.button("Stop")) {
+                Engine.onStop();
+            }
         }
 
         ImVec2 size = ImGui.getContentRegionAvail();
@@ -430,8 +445,7 @@ public class EditorLayer {
                     ImGui.endMenu();
                 }
 
-                ImGui.checkbox("isDynamic", rb.getBodyType() == BodyType.DYNAMIC ? true : false);
-                ImGui.inputText("Shape", new ImString(rb.getBody().getFixture(0).getShape() instanceof Rectangle ? "Rectangle" : "Circle"));
+                ImGui.checkbox("isDynamic", rb.getBodyType() == BodyType.DYNAMIC);
                 ImGui.inputText("Mass", new ImString(String.valueOf(rb.getMass())));
                 ImGui.inputText("Bounciness", new ImString(String.valueOf(rb.getBounce())));
                 ImGui.inputText("Friction", new ImString(String.valueOf(rb.getFriction())));
@@ -439,7 +453,7 @@ public class EditorLayer {
         }
     }
 
-    private void customComponents(Component component, ListIterator<Component> iterator) {
+    private void customComponents(Component component, Iterator<Component> iterator) {
         Class<?> clazz = component.getClass();
         if (ImGui.collapsingHeader(clazz.getSimpleName(), ImGuiTreeNodeFlags.DefaultOpen)) {
             boolean rightClicked = ImGui.isItemHovered() && ImGui.isMouseClicked(1);
@@ -522,7 +536,7 @@ public class EditorLayer {
 
         float panelWidth = ImGui.getContentRegionAvailX();
         int columnCount = Math.max(1, (int) (panelWidth / cellSize));
-        currentFolder = AssetManager.getFile().getPath();
+        currentFolder = AssetManager.getINSTANCE().getFile().getPath();
         breadCrumbs = currentFolder.split("/");
 
 
@@ -541,11 +555,11 @@ public class EditorLayer {
             if (ImGui.button(breadCrumbs[i])) {
                 String[] sub = Arrays.copyOfRange(breadCrumbs, 0, i + 1);
                 currentFolder = String.join("/", sub);
-                AssetManager.setFile(new File(currentFolder));
+                AssetManager.getINSTANCE().setFile(new File(currentFolder));
             }
         }
 
-        assets = AssetManager.getFile().listFiles();
+        assets = AssetManager.getINSTANCE().getFile().listFiles();
 
         ImGui.columns(columnCount, "assetGrid", false);
         // Allow only in asset browser tab
@@ -561,10 +575,36 @@ public class EditorLayer {
                 if (ImGui.menuItem("Script")) {
                     System.out.println("Clicked script");
                 }
+                if (ImGui.menuItem("Scene")) {
+                    showNewScenePopup = true;
+                    sceneName.set("");
+                }
                 ImGui.endMenu();
             }
             ImGui.endPopup();
         }
+
+        // outside the menu, in your main imgui render
+        if (showNewScenePopup) {
+            ImGui.openPopup("New Scene");
+        }
+
+        if (ImGui.beginPopupModal("New Scene")) {
+            ImGui.inputTextWithHint("##sceneName", "Enter scene name...", sceneName);
+
+            if (ImGui.button("Create")) {
+                SaveManager.newScene(sceneName.get() + ".scene");
+                showNewScenePopup = false;
+                ImGui.closeCurrentPopup();
+            }
+            ImGui.sameLine();
+            if (ImGui.button("Cancel")) {
+                showNewScenePopup = false;
+                ImGui.closeCurrentPopup();
+            }
+            ImGui.endPopup();
+        }
+
         for (File asset : assets) {
             String name = asset.getName();
             String fileType = asset.isDirectory() ? "FOLDER" : asset.getName().substring(asset.getName().lastIndexOf("."));
@@ -575,8 +615,10 @@ public class EditorLayer {
             float posY = ImGui.getCursorPosY();
 
             ImGui.selectable("##" + name, false, 0, thumbnailSize, thumbnailSize + 10);
+
             boolean clicked = ImGui.isItemHovered() && ImGui.isMouseDoubleClicked(0);
             boolean rightClicked = ImGui.isItemHovered() && ImGui.isMouseClicked(1);
+
             if (ImGui.beginDragDropSource()) {
                 if (fileType.equals(".java")) {
                     ImGui.setDragDropPayload("String", name.substring(0, asset.getName().lastIndexOf(".")));
@@ -614,7 +656,14 @@ public class EditorLayer {
             if (clicked) {
                 if (asset.isDirectory()) {
                     currentFolder += "/" + name;
-                    AssetManager.setFile(new File(currentFolder));
+                    AssetManager.getINSTANCE().setFile(new File(currentFolder));
+                }
+            }
+
+            if (clicked) {
+                if (fileType.equals(".scene")) {
+                    SaveManager.loadScene(asset.getPath());
+                    selected = null;
                 }
             }
 

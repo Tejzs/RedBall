@@ -52,7 +52,12 @@ public class BatchRenderer {
     private int indexCount = 0;
 
     BatchRenderer(List<GameObject> go) {
-        entities = new ArrayList<>(go);
+        entities = new ArrayList<>();
+        for (GameObject g : go) {
+            if (g.getComponent(SpriteRenderer.class) != null) {
+                entities.add(g);
+            }
+        }
         entityCount = entities.size();
     }
 
@@ -113,33 +118,27 @@ public class BatchRenderer {
 
     private void rebuildVertices() {
         int offset = 0;
-        int h = 0;
+
         for (GameObject entity : entities) {
             int quadOffset = offset * 4 * OVERALL_SIZE;
             Transform t = entity.getComponent(Transform.class);
             Rigidbody rb = entity.getComponent(Rigidbody.class);
 
-            boolean needsRebuild = t.isDirty();
-
-            if (rb != null && rb.getBodyType() == BodyType.DYNAMIC) {
-                needsRebuild = true;
-            }
+            boolean needsRebuild = t.isDirty() || (rb != null && !rb.getBody().isAtRest());
 
             if (needsRebuild) {
                 t.markAsClean();
-                SpriteRenderer sr  = entity.getComponent(SpriteRenderer.class);
-                if (sr == null) continue;
+                SpriteRenderer sr = entity.getComponent(SpriteRenderer.class);
+                if (sr == null) { offset++; continue; }
                 Texture texture = sr.getTexture();
-
                 int textureSlot = texture != null ? texture.getUsedTexSlot() : 0;
 
-                updateComponentVertices(entity, quadOffset + 0 * OVERALL_SIZE, -0.5f, 0.5f, 0, 1, textureSlot);
+                updateComponentVertices(entity, quadOffset + 0 * OVERALL_SIZE, -0.5f,  0.5f, 0, 1, textureSlot);
                 updateComponentVertices(entity, quadOffset + 1 * OVERALL_SIZE, -0.5f, -0.5f, 0, 0, textureSlot);
-                updateComponentVertices(entity, quadOffset + 2 * OVERALL_SIZE, 0.5f, -0.5f, 1, 0, textureSlot);
-                updateComponentVertices(entity, quadOffset + 3 * OVERALL_SIZE, 0.5f, 0.5f, 1, 1, textureSlot);
+                updateComponentVertices(entity, quadOffset + 2 * OVERALL_SIZE,  0.5f, -0.5f, 1, 0, textureSlot);
+                updateComponentVertices(entity, quadOffset + 3 * OVERALL_SIZE,  0.5f,  0.5f, 1, 1, textureSlot);
             }
 
-            h += 4;
             offset++;
         }
     }
@@ -148,9 +147,15 @@ public class BatchRenderer {
         boolean anyDirty = false;
 
         for (GameObject entity : entities) {
-            if (entity.getComponent(Rigidbody.class) != null && entity.getComponent(Rigidbody.class).getBodyType() == BodyType.DYNAMIC || entity.getComponent(Transform.class).isDirty()) {
-                anyDirty = true;
-                break;
+            Rigidbody rb = entity.getComponent(Rigidbody.class);
+            Transform t = entity.getComponent(Transform.class);
+
+            // check if body is awake and simulating, not just its type
+            if (rb != null && rb.getBody() != null) {
+                if (!rb.getBody().isAtRest() || t.isDirty()) {
+                    anyDirty = true;
+                    break;
+                }
             }
         }
 
@@ -165,7 +170,7 @@ public class BatchRenderer {
         Rigidbody rb = go.getComponent(Rigidbody.class);
         Transform transform = go.getComponent(Transform.class);
         Vector4f result = transform.getMatrix().transform(new Vector4f(x, y, 0, 1));
-        if (rb != null) {
+        if (rb != null && rb.getBody() != null) {
             org.dyn4j.geometry.Transform physTransform = rb.getBody().getTransform();
 
             Vector3f pos = new Vector3f((float) physTransform.getTranslationX() * PPM, (float) physTransform.getTranslationY() * PPM, transform.position.z);
