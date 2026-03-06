@@ -20,17 +20,15 @@ import redball.engine.renderer.texture.Texture;
 import redball.engine.save.SaveManager;
 import redball.engine.scene.AssetManager;
 import redball.engine.scene.SceneManager;
+import redball.engine.utils.ScriptManager;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.reflections.Reflections.log;
@@ -42,8 +40,6 @@ public class EditorLayer {
     private String selected = null;
     private final ImGuiIO io;
     private int selectedIndex = -1;
-    private String[] componentList = null;
-    private Set<Class<? extends Component>> subclasses;
     private Long window;
     private File[] assets;
     private String currentFolder;
@@ -54,6 +50,9 @@ public class EditorLayer {
     private boolean showNewScenePopup = false;
     private ImString sceneName = new ImString(256);
     private ImBoolean showSceneManager = new ImBoolean(false);
+
+    private String[] componentList = null;
+    private Set<Class<? extends Component>> subclasses;
 
     public static void init(Long window) {
         INSTANCE = new EditorLayer(window);
@@ -89,11 +88,15 @@ public class EditorLayer {
         style.setColor(ImGuiCol.TitleBgActive, 1.17f, 0.63f, 0.33f, 1.00f);
         style.setColor(ImGuiCol.FrameBg, 0.14f, 0.14f, 0.20f, 1.00f);
         style.setColor(ImGuiCol.Button, 0.20f, 0.20f, 0.30f, 1.00f);
+    }
 
-        // Get all components
-        // needs fix
-        Reflections reflections = new Reflections("redball");
+    public void initComponentList() {
+        Reflections reflections = new Reflections("redball.engine");
         subclasses = reflections.getSubTypesOf(Component.class);
+        for (String className : ScriptManager.getClassMap().keySet()) {
+            subclasses.add((Class<? extends Component>) ScriptManager.getClassMap().get(className));
+        }
+
         componentList = new String[subclasses.size()-1];
         int index = 0;
         for (Class<? extends Component> cls : subclasses) {

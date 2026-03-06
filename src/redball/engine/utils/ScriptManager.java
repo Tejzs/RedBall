@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 public class ScriptManager implements Runnable {
     private static final Map<String, URLClassLoader> loaderMap = new ConcurrentHashMap<>();
+    private static final Map<String, Class<?>> classMap = new ConcurrentHashMap<>();
     private static final ConcurrentLinkedQueue<File> reloadQueue = new ConcurrentLinkedQueue<>();
     private static final String OUTPUT_DIR = ScriptManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     private static final String RELOAD_DIR = "example/out/";
@@ -74,8 +75,8 @@ public class ScriptManager implements Runnable {
         };
 
         loaderMap.put(fullName, loader);
-
         Class<?> clazz = loader.loadClass(fullName);
+        classMap.put(fullName, clazz);
         return clazz;
     }
 
@@ -126,5 +127,9 @@ public class ScriptManager implements Runnable {
     public static ClassLoader getScriptClassLoader(String className) {
         URLClassLoader loader = loaderMap.get(className);
         return loader != null ? loader : ScriptManager.class.getClassLoader();
+    }
+
+    public static Map<String, Class<?>> getClassMap() {
+        return classMap;
     }
 }

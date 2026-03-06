@@ -80,7 +80,6 @@ public class WindowManager {
         int fps = 0;
 
         shader.use();
-        ScriptManager.compileAll("example/assets/scripts/");
         SceneManager.init();
         SceneManager.loadDefault();
 

@@ -13,7 +13,6 @@ import redball.engine.scene.AssetManager;
 import redball.engine.utils.AssetPool;
 import redball.engine.utils.ScriptManager;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Executors;
 
 public class Engine {
@@ -54,8 +53,10 @@ public class Engine {
         }
 
         started = true;
+        Executors.newSingleThreadExecutor().execute(new ScriptManager());
         LogCapture.start();
         AssetManager.init("example");
+
         windowManager = new WindowManager();
         windowManager.init();
 
@@ -64,9 +65,9 @@ public class Engine {
         KeyboardInput.init(windowManager.getWindow(), EditorLayer.getINSTANCE().getImGuiGlfw());
 
         shader = new Shader(AssetPool.getVertexShaderSource(), AssetPool.getFragmentShaderSource());
+        ScriptManager.compileAll("example/assets/scripts/");
+        EditorLayer.getINSTANCE().initComponentList();
 
-//        windowManager.switchScene(1);
-        Executors.newSingleThreadExecutor().execute(new ScriptManager());
         windowManager.loop(shader);
     }
 
