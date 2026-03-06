@@ -29,4 +29,8 @@ public class SceneManager {
         // need to check for null
         SaveManager.loadScene(sceneList.get(index));
     }
+
+    public static HashMap<Integer, String> getSceneList() {
+        return sceneList;
+    }
 }

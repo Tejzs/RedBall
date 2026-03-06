@@ -18,6 +18,9 @@ public class PlayerMovement extends Component {
     private boolean wasSpaceDown = false;
     public float maxSpeed = 27f;
     public float jumpForce = 3000;
+    public float dd;
+    public float d1d;
+    public float ffd;
 
     @Override
     public void start() {

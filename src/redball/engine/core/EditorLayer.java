@@ -19,13 +19,18 @@ import redball.engine.renderer.RenderManager;
 import redball.engine.renderer.texture.Texture;
 import redball.engine.save.SaveManager;
 import redball.engine.scene.AssetManager;
+import redball.engine.scene.SceneManager;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.reflections.Reflections.log;
@@ -48,6 +53,7 @@ public class EditorLayer {
     private String spriteName = "";
     private boolean showNewScenePopup = false;
     private ImString sceneName = new ImString(256);
+    private ImBoolean showSceneManager = new ImBoolean(false);
 
     public static void init(Long window) {
         INSTANCE = new EditorLayer(window);
@@ -189,7 +195,7 @@ public class EditorLayer {
             while (componentIterator.hasNext()) {
                 Component c = componentIterator.next();
                 if (!(c instanceof Rigidbody) && !(c instanceof Transform) && !(c instanceof Tag) && !(c instanceof SpriteRenderer) && c != null) {
-                    customComponents(go.getComponent(c.getClass()), componentIterator);
+                    customComponents(c, componentIterator);
                 }
             }
 
@@ -213,7 +219,7 @@ public class EditorLayer {
 
         assetBrowser();
         renderConsole();
-
+        renderSceneManager();
         ImGui.render();
         imGuiGl3.renderDrawData(ImGui.getDrawData());
     }
@@ -268,6 +274,9 @@ public class EditorLayer {
                 }
                 if (ImGui.menuItem("Save")) {
                     System.out.println("Save Clicked!!");
+                }
+                if (ImGui.menuItem("Scene Manager")) {
+                    showSceneManager.set(true);
                 }
                 ImGui.separator();
                 if (ImGui.menuItem("Exit")) {
@@ -479,7 +488,7 @@ public class EditorLayer {
                 }
                 ImGui.endMenu();
             }
-            for (Field field : clazz.getDeclaredFields()) {
+            for (Field field : component.getClass().getDeclaredFields()) {
                 if (!Modifier.isPublic(field.getModifiers())) continue;
                 try {
                     String name = field.getName();
@@ -606,6 +615,7 @@ public class EditorLayer {
             if (ImGui.button("Create")) {
                 SaveManager.newScene(sceneName.get() + ".scene");
                 showNewScenePopup = false;
+                SceneManager.init();
                 ImGui.closeCurrentPopup();
             }
             ImGui.sameLine();
@@ -716,6 +726,29 @@ public class EditorLayer {
             LogCapture.clear();
         }
         ImGui.end();
+    }
+
+    private void renderSceneManager() {
+        if (showSceneManager.get()) {
+            ImGui.setNextWindowSize(280, 350, ImGuiCond.FirstUseEver);
+            if (ImGui.begin("Scene Manager", showSceneManager)) {
+                ImGui.beginChild("##scene_list", 0, 0, false);
+
+                for (Entry<Integer, String> entry : SceneManager.getSceneList().entrySet()) {
+                    int sceneIndex = entry.getKey();
+                    String scenePath = entry.getValue();
+                    ImGui.text(scenePath.substring(scenePath.lastIndexOf("/")+1));
+                    ImGui.sameLine();
+
+                    float itemWidth = ImGui.calcTextSize(String.valueOf(sceneIndex)).x;
+                    ImGui.setCursorPosX(ImGui.getContentRegionAvail().x - itemWidth + ImGui.getCursorPosX());
+                    ImGui.text(String.valueOf(sceneIndex));
+                }
+
+                ImGui.endChild();
+            }
+            ImGui.end();
+        }
     }
 
     public String getIcon(String icon) {

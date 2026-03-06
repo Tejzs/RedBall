@@ -2,10 +2,10 @@ package redball.engine.renderer.texture;
 
 public enum TextureMap {
 
-    BACKGROUND("src/redball/example/assets/background.png"),
-    BALL("src/redball/example/assets/ball.png"),
-    TEST1("src/redball/example/assets/ground.png"),
-    TEST2("src/redball/example/assets/red.jpeg");
+    BACKGROUND("example/assets/background.png"),
+    BALL("example/assets/ball.png"),
+    TEST1("example/assets/ground.png"),
+    TEST2("example/assets/red.jpeg");
 
     private String filepath;
 

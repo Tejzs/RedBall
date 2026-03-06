@@ -11,6 +11,7 @@ import java.util.UUID;
 public class GameObject implements Serializable {
     // Name of the gameobject
     private String name;
+    private static final long serialVersionUID = 1L;
     // List of all components
     private ArrayList<Component> components;
 
@@ -56,6 +57,7 @@ public class GameObject implements Serializable {
         }
         return false;
     }
+
 
     /**
      * @description adds a component to a gameobject
@@ -116,5 +118,10 @@ public class GameObject implements Serializable {
             }
         }
         return false;
+    }
+
+
+    public void removeComponentByName(String className) {
+        components.removeIf(c -> c.getClass().getName().equals(className));
     }
 }

@@ -11,8 +11,10 @@ import redball.engine.renderer.WindowManager;
 import redball.engine.save.SaveObject;
 import redball.engine.scene.AssetManager;
 import redball.engine.utils.AssetPool;
+import redball.engine.utils.ScriptManager;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.Executors;
 
 public class Engine {
     private static boolean started = false;
@@ -46,14 +48,14 @@ public class Engine {
         RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
     }
 
-    public static void start() throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException {
+    public static void start() throws Exception {
         if (started) {
             return;
         }
 
         started = true;
         LogCapture.start();
-        AssetManager.init("src/redball/example");
+        AssetManager.init("example");
         windowManager = new WindowManager();
         windowManager.init();
 
@@ -64,7 +66,7 @@ public class Engine {
         shader = new Shader(AssetPool.getVertexShaderSource(), AssetPool.getFragmentShaderSource());
 
 //        windowManager.switchScene(1);
-
+        Executors.newSingleThreadExecutor().execute(new ScriptManager());
         windowManager.loop(shader);
     }
 

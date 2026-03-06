@@ -12,8 +12,8 @@ import redball.engine.renderer.texture.Texture;
 import redball.engine.scene.AssetManager;
 import redball.engine.scene.SceneManager;
 import redball.engine.utils.AbstractScene;
-import redball.example.assets.Level1;
-import redball.example.assets.TestScene;
+import redball.engine.utils.FolderObserver;
+import redball.engine.utils.ScriptManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
@@ -72,7 +72,7 @@ public class WindowManager {
 //        });
     }
 
-    public void loop(Shader shader) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException {
+    public void loop(Shader shader) throws Exception {
         double lastTime = glfwGetTime();
         double lastSecond = lastTime;
         double physicsStep = 1.0 / 60.0;
@@ -80,10 +80,12 @@ public class WindowManager {
         int fps = 0;
 
         shader.use();
+        ScriptManager.compileAll("example/assets/scripts/");
         SceneManager.init();
         SceneManager.loadDefault();
 
         while (!GLFW.glfwWindowShouldClose(window)) {
+            ScriptManager.processReloads(); // add this line
             double time = glfwGetTime();
             double deltaTime = time - lastTime;
             accumulator += deltaTime;
@@ -116,26 +118,7 @@ public class WindowManager {
         }
         EditorLayer.getINSTANCE().dispose();
         glfwTerminate();
-    }
-
-    public void switchScene(int index) {
-        ECSWorld.removeAll();
-        RenderManager.clear();
-        changeScene(index);
-    }
-
-    public void changeScene(int newScene) {
-        switch (newScene) {
-            case 0:
-                useScene(new Level1());
-                break;
-            case 1:
-                useScene(new TestScene());
-                break;
-            default:
-                assert false : "Unknown scene '" + newScene + "'";
-                break;
-        }
+        FolderObserver.stop();
     }
 
     public void useScene(AbstractScene scene) {

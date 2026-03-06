@@ -4,8 +4,9 @@ import org.apache.commons.lang3.SerializationUtils;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.renderer.texture.TextureManager;
+import redball.engine.utils.ScriptManager;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +27,21 @@ public class SaveObject implements Serializable {
 
 
     public static SaveObject parseFrom(byte[] bytes) {
-        return SerializationUtils.deserialize(bytes);
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes)) {
+            @Override
+            protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+                ClassLoader loader = ScriptManager.getScriptClassLoader(desc.getName());
+                try {
+                    return Class.forName(desc.getName(), false, loader);
+                } catch (ClassNotFoundException e) {
+                    return super.resolveClass(desc);
+                }
+            }
+        }) {
+            return (SaveObject) ois.readObject();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize scene: " + e.getMessage(), e);
+        }
     }
 
 
