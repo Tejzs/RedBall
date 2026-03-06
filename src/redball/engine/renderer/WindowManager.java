@@ -4,7 +4,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
-import redball.engine.core.EditorLayer;
+import redball.engine.editor.EditorLayer;
 import redball.engine.core.Engine;
 import redball.engine.core.PhysicsSystem;
 import redball.engine.entity.ECSWorld;
@@ -15,7 +15,6 @@ import redball.engine.utils.AbstractScene;
 import redball.engine.utils.FolderObserver;
 import redball.engine.utils.ScriptManager;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;

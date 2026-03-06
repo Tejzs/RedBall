@@ -1,4 +1,4 @@
-package redball.engine.core;
+package redball.engine.editor;
 
 import imgui.*;
 import imgui.flag.*;
@@ -9,8 +9,9 @@ import imgui.type.ImString;
 import imgui.flag.ImGuiCol;
 import org.joml.Vector3f;
 import org.reflections.Reflections;
-import redball.engine.core.Logger.LogCapture;
-import redball.engine.core.Logger.LogLine;
+import redball.engine.core.Engine;
+import redball.engine.Logger.LogCapture;
+import redball.engine.Logger.LogLine;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.*;
@@ -184,8 +185,8 @@ public class EditorLayer {
         renderViewPort();
 
         ImGui.begin("Inspector");
-        if (selected != null) {
-            GameObject go = ECSWorld.findGameObjectByName(selected);
+        GameObject go = ECSWorld.findGameObjectByName(selected);
+        if (go != null) {
             ImGui.text("Name");
             ImGui.sameLine();
             ImGui.inputText("##Name", new ImString(go.getName()));

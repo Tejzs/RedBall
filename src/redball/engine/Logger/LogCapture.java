@@ -1,4 +1,4 @@
-package redball.engine.core.Logger;
+package redball.engine.Logger;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

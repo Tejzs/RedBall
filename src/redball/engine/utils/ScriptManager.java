@@ -3,6 +3,7 @@ package redball.engine.utils;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Component;
+import redball.engine.scene.AssetManager;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -23,7 +24,6 @@ public class ScriptManager implements Runnable {
     private static final Map<String, Class<?>> classMap = new ConcurrentHashMap<>();
     private static final ConcurrentLinkedQueue<File> reloadQueue = new ConcurrentLinkedQueue<>();
     private static final String OUTPUT_DIR = ScriptManager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-    private static final String RELOAD_DIR = "example/out/";
     public static volatile boolean reloaded = false;
 
     @Override
@@ -49,9 +49,9 @@ public class ScriptManager implements Runnable {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) throw new RuntimeException("No compiler — use JDK not JRE");
 
-        new File(RELOAD_DIR).mkdirs();
+        new File(AssetManager.getINSTANCE().getCompileDirectory()).mkdirs();
 
-        int result = compiler.run(null, System.out, System.err, "-classpath", OUTPUT_DIR + File.pathSeparator + System.getProperty("java.class.path"), "-d", RELOAD_DIR, file.getPath());
+        int result = compiler.run(null, System.out, System.err, "-classpath", OUTPUT_DIR + File.pathSeparator + System.getProperty("java.class.path"), "-d", AssetManager.getINSTANCE().getCompileDirectory(), file.getPath());
         if (result != 0) throw new RuntimeException("Compilation failed — check stderr above");
 
         String fullName = getFullyQualifiedName(file);
@@ -59,7 +59,7 @@ public class ScriptManager implements Runnable {
         URLClassLoader old = loaderMap.get(fullName);
         if (old != null) old.close();
 
-        URLClassLoader loader = new URLClassLoader(new URL[]{new File(RELOAD_DIR).toURI().toURL()}, ScriptManager.class.getClassLoader()) {
+        URLClassLoader loader = new URLClassLoader(new URL[]{new File(AssetManager.getINSTANCE().getCompileDirectory()).toURI().toURL()}, ScriptManager.class.getClassLoader()) {
             @Override
             protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
                 if (name.startsWith("redball.example.assets.scripts.")) {

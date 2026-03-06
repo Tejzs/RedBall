@@ -1,6 +1,7 @@
 package redball.engine.core;
 
-import redball.engine.core.Logger.LogCapture;
+import redball.engine.Logger.LogCapture;
+import redball.engine.editor.EditorLayer;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Rigidbody;
@@ -47,15 +48,16 @@ public class Engine {
         RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
     }
 
-    public static void start() throws Exception {
+    public static void start(String path) throws Exception {
         if (started) {
             return;
         }
 
         started = true;
-        Executors.newSingleThreadExecutor().execute(new ScriptManager());
+        AssetManager.init(path);
         LogCapture.start();
-        AssetManager.init("example");
+
+        Executors.newSingleThreadExecutor().execute(new ScriptManager());
 
         windowManager = new WindowManager();
         windowManager.init();
@@ -65,7 +67,7 @@ public class Engine {
         KeyboardInput.init(windowManager.getWindow(), EditorLayer.getINSTANCE().getImGuiGlfw());
 
         shader = new Shader(AssetPool.getVertexShaderSource(), AssetPool.getFragmentShaderSource());
-        ScriptManager.compileAll("example/assets/scripts/");
+        ScriptManager.compileAll(AssetManager.getINSTANCE().getScriptDirectory());
         EditorLayer.getINSTANCE().initComponentList();
 
         windowManager.loop(shader);

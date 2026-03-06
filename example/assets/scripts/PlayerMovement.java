@@ -18,6 +18,7 @@ public class PlayerMovement extends Component {
     private boolean wasSpaceDown = false;
     public float maxSpeed = 27f;
     public float jumpForce = 200;
+    public float jumpFossrce = 200;
 
     @Override
     public void start() {
@@ -48,6 +49,7 @@ public class PlayerMovement extends Component {
             }
         }
 
+        // Press P to switch to demo scene
         if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_P)) {
             SceneManager.switchScenes(0);
         }
