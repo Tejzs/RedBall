@@ -1,6 +1,7 @@
 package redball.engine.core;
 
-import redball.engine.core.Logger.LogCapture;
+import redball.engine.Logger.LogCapture;
+import redball.engine.editor.EditorLayer;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Rigidbody;
@@ -11,6 +12,7 @@ import redball.engine.renderer.WindowManager;
 import redball.engine.save.SaveObject;
 import redball.engine.scene.AssetManager;
 import redball.engine.utils.AssetPool;
+import redball.engine.utils.PakWriter;
 import redball.engine.utils.ScriptManager;
 
 import java.util.concurrent.Executors;
@@ -21,6 +23,7 @@ public class Engine {
     private static Shader shader = null;
     public static boolean isPlaying = false;
     private static byte[] savedScene;
+    public static boolean isBuild;
 
     public static void onPlay() {
         // save current scene to memory
@@ -47,28 +50,33 @@ public class Engine {
         RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
     }
 
-    public static void start() throws Exception {
+    public static void start(String path, boolean build) throws Exception {
         if (started) {
             return;
         }
 
         started = true;
-        Executors.newSingleThreadExecutor().execute(new ScriptManager());
+        isBuild = build;
+        AssetManager.init(path);
         LogCapture.start();
-        AssetManager.init("example");
+        Executors.newSingleThreadExecutor().execute(new ScriptManager());
 
         windowManager = new WindowManager();
         windowManager.init();
 
+        if (build) {
+            PakWriter.loadPak();
+        }
+
         EditorLayer.init(windowManager.getWindow());
 
         KeyboardInput.init(windowManager.getWindow(), EditorLayer.getINSTANCE().getImGuiGlfw());
-
         shader = new Shader(AssetPool.getVertexShaderSource(), AssetPool.getFragmentShaderSource());
-        ScriptManager.compileAll("example/assets/scripts/");
+
+        ScriptManager.compileAll(AssetManager.getINSTANCE().getScriptDirectory());
         EditorLayer.getINSTANCE().initComponentList();
 
-        windowManager.loop(shader);
+        windowManager.loop(shader, build);
     }
 
 

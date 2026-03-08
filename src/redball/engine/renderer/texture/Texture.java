@@ -1,5 +1,7 @@
 package redball.engine.renderer.texture;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -9,6 +11,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.stb.STBImage;
+import redball.engine.core.Engine;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
@@ -54,7 +57,23 @@ public class Texture implements Serializable {
         IntBuffer height = BufferUtils.createIntBuffer(1);
         IntBuffer channels = BufferUtils.createIntBuffer(1);
         STBImage.stbi_set_flip_vertically_on_load(true);
-        ByteBuffer textureImg = STBImage.stbi_load(filePath, width, height, channels, 0);
+        ByteBuffer textureImg;
+
+        if (Engine.isBuild) {
+            try (FileInputStream fis = new FileInputStream(filePath)) {
+                byte[] data = fis.readAllBytes();
+
+                ByteBuffer imageBuffer = ByteBuffer.allocateDirect(data.length);
+                imageBuffer.put(data);
+                imageBuffer.flip();
+
+                textureImg = STBImage.stbi_load_from_memory(imageBuffer, width, height, channels, 0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            textureImg = STBImage.stbi_load(filePath, width, height, channels, 0);
+        }
 
         if (textureImg != null) {
             this.width = width.get(0);

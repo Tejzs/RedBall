@@ -1,6 +1,8 @@
 package redball.engine.utils;
 
 import org.apache.commons.io.monitor.*;
+import redball.engine.scene.AssetManager;
+
 import java.io.File;
 
 public class FolderObserver {
@@ -8,7 +10,7 @@ public class FolderObserver {
     private static FileAlterationMonitor monitor;
 
     public static void start() throws Exception {
-        File directory = new File("example/assets/scripts/");
+        File directory = new File(AssetManager.getINSTANCE().getScriptDirectory());
 
         FileAlterationObserver observer = new FileAlterationObserver(directory);
 
@@ -16,7 +18,7 @@ public class FolderObserver {
             @Override
             public void onFileChange(File file) {
                 System.out.println("File changed: " + file.getName());
-                ScriptManager.scheduleReload(file); // enqueue only — no reload here
+                ScriptManager.scheduleReload(file);
             }
         });
 

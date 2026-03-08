@@ -22,6 +22,8 @@ public class FrameBuffer {
     private int rbo;
 
     public FrameBuffer(int width, int height) {
+        this.width = width;   // ← add these two lines
+        this.height = height;
         fboId = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);
 
@@ -38,6 +40,15 @@ public class FrameBuffer {
         glBindRenderbuffer(GL_RENDERBUFFER, rbo);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            System.err.println("FBO incomplete: " + status);
+        }
+    }
+
+    public int getFboId() {
+        return fboId;
     }
 
     public static void init(int width, int height) {

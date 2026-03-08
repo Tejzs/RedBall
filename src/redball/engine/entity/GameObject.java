@@ -120,8 +120,11 @@ public class GameObject implements Serializable {
         return false;
     }
 
-
     public void removeComponentByName(String className) {
         components.removeIf(c -> c.getClass().getName().equals(className));
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

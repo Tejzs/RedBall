@@ -38,16 +38,17 @@ public class PlayerMovement extends Component {
 
         if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_LEFT) ) {
             if (ballVelocity.x > -maxSpeed) {
-                ballBody.getBody().applyForce(new Vector2(-1000000 * dt, 0));
+                ballBody.getBody().applyForce(new Vector2(-100000 * dt, 0));
             }
         }
 
         if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_RIGHT)) {
             if (ballVelocity.x < maxSpeed) {
-                ballBody.getBody().applyForce(new Vector2(1000000 * dt, 0));
+                ballBody.getBody().applyForce(new Vector2(100000 * dt, 0));
             }
         }
 
+        // Press P to switch to demo scene
         if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_P)) {
             SceneManager.switchScenes(0);
         }

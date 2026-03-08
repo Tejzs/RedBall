@@ -1,6 +1,8 @@
 package redball.engine.scene;
 
+import redball.engine.core.Engine;
 import redball.engine.save.SaveManager;
+import redball.engine.utils.PakWriter;
 
 import java.io.File;
 import java.util.HashMap;
@@ -10,12 +12,21 @@ public class SceneManager {
 
     public static void init() {
         int index = 0;
-        File[] scenes = new File(AssetManager.getINSTANCE().getScenesDirectory()).listFiles();
+        if (Engine.isBuild) {
+            for (String key : PakWriter.getManifestFile().keySet()) {
+                if (key.endsWith(".scene")) {
+                    sceneList.put(index, PakWriter.getManifestFile().get(key));
+                    index++;
+                }
+            }
+        } else {
+            File[] scenes = new File(AssetManager.getINSTANCE().getScenesDirectory()).listFiles();
 
-        if (scenes != null) {
-            for (File scene : scenes) {
-                sceneList.put(index, scene.getPath());
-                index++;
+            if (scenes != null) {
+                for (File scene : scenes) {
+                    sceneList.put(index, scene.getPath());
+                    index++;
+                }
             }
         }
     }
@@ -26,7 +37,6 @@ public class SceneManager {
     }
 
     public static void switchScenes(int index) {
-        // need to check for null
         SaveManager.loadScene(sceneList.get(index));
     }
 

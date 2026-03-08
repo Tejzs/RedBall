@@ -8,12 +8,18 @@ public class AssetManager {
     private static AssetManager INSTANCE;
     private String workingDirectory;
     public String scenesDirectory;
+    public String scriptDirectory;
+    public String compileDirectory;
+    public String buildDirectory;
     private File file;
     public String currentWorkingScene = "";
 
     public AssetManager(String directory) {
         workingDirectory = directory;
         scenesDirectory = workingDirectory + File.separatorChar + "assets/scenes" + File.separatorChar;
+        scriptDirectory = workingDirectory + File.separatorChar + "assets/scripts" + File.separatorChar;
+        compileDirectory = workingDirectory + File.separatorChar + "out" + File.separatorChar;
+        buildDirectory = workingDirectory + File.separatorChar + "build" + File.separatorChar;
         file = new File(workingDirectory);
     }
 
@@ -23,6 +29,18 @@ public class AssetManager {
 
     public String getWorkingDirectory() {
         return workingDirectory;
+    }
+
+    public String getScriptDirectory() {
+        return scriptDirectory;
+    }
+
+    public String getCompileDirectory() {
+        return compileDirectory;
+    }
+
+    public String getBuildDirectory() {
+        return buildDirectory;
     }
 
     public void setWorkingDirectory(String workingDirectory) {

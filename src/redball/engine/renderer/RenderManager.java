@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL30.*;
 import static redball.engine.renderer.BatchRenderer.MAX_ENTITIES;
 
 
@@ -60,6 +61,17 @@ public class RenderManager {
             batchRenderer.render();
         }
         frameBuffer.unbind();
+
+        // Blit FBO to window
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer.getFboId());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(
+                0, 0, frameBuffer.getWidth(), frameBuffer.getHeight(),
+                0, 0, frameBuffer.getWidth(), frameBuffer.getHeight(),
+                GL_COLOR_BUFFER_BIT, GL_NEAREST
+        );
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     }
 
     public static FrameBuffer getFrameBuffer() {
