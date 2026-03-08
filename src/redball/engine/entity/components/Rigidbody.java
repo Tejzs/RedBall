@@ -91,6 +91,10 @@ public class Rigidbody extends Component {
         this.bodyFixture =  bodyFixture;
     }
 
+    public BodyFixture getBodyFixture() {
+        return bodyFixture;
+    }
+
     // detects overlaps but has no collision response
     public void setSensor(boolean set) {
         getBody().getFixture(0).setSensor(set);

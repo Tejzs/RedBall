@@ -5,6 +5,7 @@ import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import imgui.type.ImBoolean;
+import imgui.type.ImInt;
 import imgui.type.ImString;
 import imgui.flag.ImGuiCol;
 import org.joml.Vector3f;
@@ -60,6 +61,10 @@ public class EditorLayer {
     private String prevSelected = null;
 
     private ImString searchBuffer = null;
+    ImInt fixtureSelectedIndex = new ImInt(0);
+    String[] bodyFixtures = Arrays.stream(BodyFixture.values())
+            .map(Enum::name)
+            .toArray(String[]::new);
 
     public static void init(Long window) {
         INSTANCE = new EditorLayer(window);
@@ -81,7 +86,7 @@ public class EditorLayer {
         fontConfig.setOversampleH(1);
         fontConfig.setOversampleV(1);
         fontConfig.setPixelSnapH(true);
-        io.getFonts().addFontFromFileTTF("/home/tejas/Projects/RedBall/resources/Inter_18pt-Regular.ttf", 15.0f, fontConfig);
+        io.getFonts().addFontFromFileTTF("resources/Inter_18pt-Regular.ttf", 15.0f, fontConfig);
 
         ImFontConfig iconConfig = new ImFontConfig();
         iconConfig.setMergeMode(true);
@@ -89,7 +94,7 @@ public class EditorLayer {
         iconConfig.setOversampleH(2);
         iconConfig.setOversampleV(2);
         short[] iconRanges = {(short) 0xF000, (short) 0xF8FF, 0};
-        io.getFonts().addFontFromFileTTF("/home/tejas/Projects/RedBall/resources/Font Awesome 7 Free-Solid-900.otf", 30.0f, iconConfig, iconRanges);
+        io.getFonts().addFontFromFileTTF("resources/Font Awesome 7 Free-Solid-900.otf", 30.0f, iconConfig, iconRanges);
 
         io.getFonts().build();
 
@@ -343,7 +348,6 @@ public class EditorLayer {
                 selected = go.getName();
             }
 
-// draw text centered manually over the selectable
             float textY = y + (itemHeight - ImGui.getTextLineHeight()) / 2;
             ImGui.getWindowDrawList().addText(x + 8, textY, ImGui.colorConvertFloat4ToU32(0.85f, 0.85f, 0.85f, 1.0f), go.getName());
 
@@ -513,6 +517,7 @@ public class EditorLayer {
                             selectedIndex = n;
                             Component c = go.addComponent(getComponent(n));
                             if (c instanceof SpriteRenderer) RenderManager.rebuild();
+                            if (c instanceof Rigidbody) ((Rigidbody) c).createBody();
                             try {
                                 c.start();
                             } catch (Exception e) {
@@ -623,9 +628,16 @@ public class EditorLayer {
 
                 ImBoolean isDynamic = new ImBoolean(rb.getBodyType() == BodyType.DYNAMIC);
                 if (ImGui.checkbox("isDynamic", isDynamic.get())) {
-                    rb.setBodyType(isDynamic.get() ? BodyType.DYNAMIC : BodyType.STATIC);
+                    rb.setBodyType(isDynamic.get() ? BodyType.STATIC : BodyType.DYNAMIC);
                     rb.physicsSystemSetBodyType(isDynamic.get() ? BodyType.STATIC : BodyType.DYNAMIC);
                 }
+
+                fixtureSelectedIndex.set(rb.getBodyFixture().ordinal());
+                if (ImGui.combo("Collision Shape", fixtureSelectedIndex, bodyFixtures)) {
+                    rb.setFixture(BodyFixture.values()[fixtureSelectedIndex.get()]);
+                    rb.physiosSystemSetBodyFixture(BodyFixture.values()[fixtureSelectedIndex.get()]);
+                }
+
                 int[] mass = {rb.getMass()};
                 if (ImGui.dragInt("Mass", mass)) {
                     rb.setMass(mass[0]);
