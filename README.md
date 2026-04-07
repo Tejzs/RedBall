@@ -22,14 +22,14 @@
 - [x] **Entity-Component System (ECS)** — Entities composed of modular components
 - [x] **Add Component Menu** — Searchable dropdown to attach components at runtime
 - [x] **Custom Component Scripts** — Write your own components, they show up in the engine automatically
+- [x] **Scene Save / Load** — Serialize and deserialize scenes to disk
 
 ---
 
 ## 🚧 In Progress
 
 - [ ] **Editor** — Runtime panel to view & edit entity properties, currently features project hierarchy and inspector
-- [ ] **Scene Save / Load** — Serialize and deserialize scenes to disk
-- [ ] **Collision Callbacks** — `onCollisionEnter`, `onCollisionExit` events
+- [ ] Packaging / export to standalone JAR
 
 ---
 
@@ -39,7 +39,7 @@
 - [ ] Particle system
 - [ ] Animation system (sprite sheets)
 - [ ] Level editor improvements
-- [ ] Packaging / export to standalone JAR
+- [ ] **Collision Callbacks** — `onCollisionEnter`, `onCollisionExit` events
 
 ---
 
@@ -47,10 +47,10 @@
 
 ```
 RedBall/
-├── src/redball/        # Engine source (Java)
-├── src/redball/scenes  # Example game scenes
+├── Redball/            # Engine source (Java)
+├── samples/            # Example game scenes
 ├── shaders/            # GLSL vertex & fragment shaders
-├── resources/          # Sprites and assets
+├── resources/          # Fonts
 └── lib/                # LWJGL and other deps
 ```
 
@@ -62,7 +62,10 @@ One of the core features, you can add your own logic as a component and it'll au
 
 ```java
 public class MyComponent extends Component {
-    public float speed = 5.0f;
+   @Serial
+   private static final long serialVersionUID = 1L;
+
+   public float speed = 5.0f;
 
     @Override
     public void start() {
