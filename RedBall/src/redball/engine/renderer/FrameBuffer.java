@@ -22,7 +22,7 @@ public class FrameBuffer {
     private int rbo;
 
     public FrameBuffer(int width, int height) {
-        this.width = width;   // ← add these two lines
+        this.width = width;
         this.height = height;
         fboId = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, fboId);

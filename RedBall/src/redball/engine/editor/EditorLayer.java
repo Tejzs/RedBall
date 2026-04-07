@@ -1,6 +1,9 @@
 package redball.engine.editor;
 
 import imgui.*;
+import imgui.extension.imguizmo.ImGuizmo;
+import imgui.extension.imguizmo.flag.Mode;
+import imgui.extension.imguizmo.flag.Operation;
 import imgui.flag.*;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
@@ -60,6 +63,10 @@ public class EditorLayer {
 
     private static boolean compileSuccess = false;
     private static int fps = 0;
+
+    private boolean translate = true;
+    private boolean rotate = false;
+    private boolean scale = false;
 
     private static String[] componentList = null;
     private static Set<Class<? extends Component>> subclasses;
@@ -244,6 +251,7 @@ public class EditorLayer {
         imGuiGlfw.newFrame();
         imGuiGl3.newFrame();
         ImGui.newFrame();
+        ImGuizmo.beginFrame();
 
         renderStatusBar();
 
@@ -451,6 +459,24 @@ public class EditorLayer {
             }
         }
 
+        if (ImGui.radioButton("Translate", translate)) {
+            translate = !translate;
+            rotate = false;
+            scale = false;
+        }
+
+        if (ImGui.radioButton("Rotate", rotate)) {
+            translate = false;
+            rotate = !rotate;
+            scale = false;
+        }
+
+        if (ImGui.radioButton("Scale", scale)) {
+            translate = false;
+            rotate = false;
+            scale = !scale;
+        }
+
         ImVec2 size = ImGui.getContentRegionAvail();
 
         float frameBufferWidth = RenderManager.getFrameBuffer().getWidth();
@@ -471,7 +497,61 @@ public class EditorLayer {
         ImVec2 cur = ImGui.getCursorPos();
         ImGui.setCursorPos((size.x + cur.x - renderWidth) / 2, (25f + size.y + cur.y - renderHeight) / 2);
 
+        float windowPosX  = ImGui.getWindowPosX();
+        float windowPosY  = ImGui.getWindowPosY();
+        float windowSizeX = ImGui.getWindowWidth();
+        float windowSizeY = ImGui.getWindowHeight();
+
         ImGui.image(RenderManager.getFrameBuffer().getTextureId(), new ImVec2(renderWidth, renderHeight), new ImVec2(0, 1), new ImVec2(1, 0));
+
+        if (selected != null && !Engine.isPlaying()) {
+            ImGuizmo.setOrthographic(true);
+            ImGuizmo.setDrawList();
+
+            ImGuizmo.setRect(windowPosX, windowPosY, windowSizeX, windowSizeY);
+            CameraComponent cam = ECSWorld.findGameObjectByName("Camera").getComponent(CameraComponent.class);
+
+            ImGuizmo.enable(true);
+
+            float[] viewMatrix = new float[16];
+            float[] projectionMatrix = new float[16];
+            cam.getViewMatrix().get(viewMatrix);
+            cam.getProjectionMatrix().get(projectionMatrix);
+
+            Transform t = ECSWorld.findGameObjectByName(selected).getComponent(Transform.class);
+
+            float[] objectMatrix = new float[16];
+            t.getMatrix().get(objectMatrix);
+
+            if (translate) {
+                ImGuizmo.manipulate(viewMatrix, projectionMatrix, Operation.TRANSLATE, Mode.LOCAL, objectMatrix);
+            }
+
+            if (rotate) {
+                ImGuizmo.manipulate(viewMatrix, projectionMatrix, Operation.ROTATE, Mode.LOCAL, objectMatrix);
+            }
+
+            if (scale) {
+                ImGuizmo.manipulate(viewMatrix, projectionMatrix, Operation.SCALE, Mode.LOCAL, objectMatrix);
+            }
+
+            if (ImGuizmo.isUsing()) {
+                float[] translation = new float[3];
+                float[] rotation    = new float[3];
+                float[] scale       = new float[3];
+
+                ImGuizmo.decomposeMatrixToComponents(objectMatrix, translation, rotation, scale);
+
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXPosition(translation[0]);
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYPosition(translation[1]);
+
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXScale(scale[0]);
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYScale(scale[1]);
+            }
+        }
+        else {
+            ImGuizmo.enable(false);
+        }
 
         ImGui.end();
     }
@@ -590,7 +670,7 @@ public class EditorLayer {
             }
             float[] rot = {transform.getRotation()};
             if (ImGui.dragFloat("Rotation", rot)) {
-                transform.setRotation(rot[0] % 360);
+                transform.setRotation((float) rot[0] % 360);
             }
             float[] scale = {transform.getScaleX(), transform.getScaleY()};
             if (ImGui.dragFloat2("Scale", scale)) {
