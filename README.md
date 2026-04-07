@@ -11,7 +11,7 @@
 > Live inspector, physics simulation, and a ball that rolls around.
 > Not bad for a WIP.
 
-![RedBall Engine](showcase/RedBall~~~~.png)
+![RedBall Engine](showcase/RedBall.png)
 
 ---
 
