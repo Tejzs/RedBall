@@ -81,9 +81,6 @@ public class WindowManager {
         shader.use();
         SceneManager.init();
         SceneManager.loadDefault();
-        if (build) {
-            ECSWorld.start();
-        }
 
         while (!GLFW.glfwWindowShouldClose(window)) {
             ScriptManager.processReloads();
@@ -98,12 +95,11 @@ public class WindowManager {
                     PhysicsSystem.update((float) physicsStep);
                     accumulator -= physicsStep;
                 }
-                // use if corrupt
-                // scene.update((float) deltaTime);
                 ECSWorld.update(Objects.requireNonNull(ECSWorld.findGameObjectByTag("Camera")), (float) deltaTime);
             } else {
                 accumulator = 0;
             }
+
             RenderManager.render(Objects.requireNonNull(ECSWorld.findGameObjectByTag("Camera")));
             if (!build) {
                 EditorLayer.getINSTANCE().renderDebug();

@@ -173,15 +173,15 @@ public class BatchRenderer {
     private void updateComponentVertices(GameObject go, int off, float x, float y, int tx, int ty, int tId) {
         Rigidbody rb = go.getComponent(Rigidbody.class);
         Transform transform = go.getComponent(Transform.class);
-        Vector4f result = transform.getMatrix().transform(new Vector4f(x, y, 0, 1));
+        Matrix4f matrix = new Matrix4f().translate(transform.position).rotateZ(transform.rotation).scale(transform.scale);
+        Vector4f result = matrix.transform(new Vector4f(x, y, 0, 1));
         if (rb != null && rb.getBody() != null) {
             org.dyn4j.geometry.Transform physTransform = rb.getBody().getTransform();
 
             Vector3f pos = new Vector3f((float) physTransform.getTranslationX() * PPM, (float) physTransform.getTranslationY() * PPM, transform.position.z);
             float rotation = (float) physTransform.getRotationAngle();
 
-            Matrix4f matrix = new Matrix4f().translate(pos).rotateZ(rotation).scale(transform.scale);
-
+            matrix = new Matrix4f().translate(pos).rotateZ(rotation).scale(transform.scale);
             result = matrix.transform(new Vector4f(x, y, 0, 1));
         }
         verticesData[off] = result.x;

@@ -1,13 +1,11 @@
 package redball.engine.entity.components;
 
-import org.dyn4j.collision.Fixture;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.contact.ContactConstraint;
-import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.MassType;
-import org.dyn4j.geometry.Vector2;
 import redball.engine.core.PhysicsSystem;
+import redball.engine.entity.GameObject;
 
 import java.io.Serial;
 import java.util.List;
@@ -142,7 +140,7 @@ public class Rigidbody extends Component {
         body.setUserData(this);
         Transform transform = this.gameObject.getComponent(Transform.class);
 
-        getBody().getTransform().setRotation(Math.toRadians(transform.rotation));
+        getBody().getTransform().setRotation(transform.rotation);
 
         physiosSystemSetBodyFixture(bodyFixture);
         physicsSystemSetMass(mass);

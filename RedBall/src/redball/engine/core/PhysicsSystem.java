@@ -10,7 +10,7 @@ public class PhysicsSystem {
 
     public static void init() {
         world = new World<>();
-        world.setGravity(new Vector2(0, -98));
+        world.setGravity(new Vector2(0, -25f));
     }
 
     public static void update(float deltaTime) {

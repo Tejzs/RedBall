@@ -16,6 +16,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.joml.Vector3f;
 import org.reflections.Reflections;
 import redball.engine.core.Engine;
+import redball.engine.core.PhysicsSystem;
 import redball.engine.logger.LogCapture;
 import redball.engine.logger.LogLine;
 import redball.engine.entity.ECSWorld;
@@ -64,9 +65,10 @@ public class EditorLayer {
     private static boolean compileSuccess = false;
     private static int fps = 0;
 
-    private boolean translate = true;
-    private boolean rotate = false;
-    private boolean scale = false;
+    private int currOpr = Operation.TRANSLATE;
+    private float[] objectMatrix = new float[16];
+    private float[] viewMatrix = new float[16];
+    private float[] projectionMatrix = new float[16];
 
     private static String[] componentList = null;
     private static Set<Class<? extends Component>> subclasses;
@@ -459,22 +461,16 @@ public class EditorLayer {
             }
         }
 
-        if (ImGui.radioButton("Translate", translate)) {
-            translate = !translate;
-            rotate = false;
-            scale = false;
+        if (ImGui.radioButton("Translate", currOpr == Operation.TRANSLATE)) {
+            currOpr = Operation.TRANSLATE;
         }
 
-        if (ImGui.radioButton("Rotate", rotate)) {
-            translate = false;
-            rotate = !rotate;
-            scale = false;
+        if (ImGui.radioButton("Rotate", currOpr == Operation.ROTATE)) {
+            currOpr = Operation.ROTATE;
         }
 
-        if (ImGui.radioButton("Scale", scale)) {
-            translate = false;
-            rotate = false;
-            scale = !scale;
+        if (ImGui.radioButton("Scale", currOpr == Operation.SCALE)) {
+            currOpr = Operation.SCALE;
         }
 
         ImVec2 size = ImGui.getContentRegionAvail();
@@ -497,60 +493,43 @@ public class EditorLayer {
         ImVec2 cur = ImGui.getCursorPos();
         ImGui.setCursorPos((size.x + cur.x - renderWidth) / 2, (25f + size.y + cur.y - renderHeight) / 2);
 
-        float windowPosX  = ImGui.getWindowPosX();
-        float windowPosY  = ImGui.getWindowPosY();
-        float windowSizeX = ImGui.getWindowWidth();
-        float windowSizeY = ImGui.getWindowHeight();
+        ImVec2 cursorPos = ImGui.getCursorScreenPos();
 
         ImGui.image(RenderManager.getFrameBuffer().getTextureId(), new ImVec2(renderWidth, renderHeight), new ImVec2(0, 1), new ImVec2(1, 0));
 
-        if (selected != null && !Engine.isPlaying()) {
+        if (selected != null) {
             ImGuizmo.setOrthographic(true);
             ImGuizmo.setDrawList();
 
-            ImGuizmo.setRect(windowPosX, windowPosY, windowSizeX, windowSizeY);
+            ImGuizmo.setRect(cursorPos.x, cursorPos.y, renderWidth, renderHeight);
+
             CameraComponent cam = ECSWorld.findGameObjectByName("Camera").getComponent(CameraComponent.class);
 
-            ImGuizmo.enable(true);
-
-            float[] viewMatrix = new float[16];
-            float[] projectionMatrix = new float[16];
             cam.getViewMatrix().get(viewMatrix);
             cam.getProjectionMatrix().get(projectionMatrix);
 
-            Transform t = ECSWorld.findGameObjectByName(selected).getComponent(Transform.class);
-
-            float[] objectMatrix = new float[16];
-            t.getMatrix().get(objectMatrix);
-
-            if (translate) {
-                ImGuizmo.manipulate(viewMatrix, projectionMatrix, Operation.TRANSLATE, Mode.LOCAL, objectMatrix);
+            if (!ImGuizmo.isUsing()) {
+                Transform t = ECSWorld.findGameObjectByName(selected).getComponent(Transform.class);
+                t.getMatrix().get(objectMatrix);
             }
 
-            if (rotate) {
-                ImGuizmo.manipulate(viewMatrix, projectionMatrix, Operation.ROTATE, Mode.LOCAL, objectMatrix);
-            }
-
-            if (scale) {
-                ImGuizmo.manipulate(viewMatrix, projectionMatrix, Operation.SCALE, Mode.LOCAL, objectMatrix);
-            }
+            ImGuizmo.manipulate(viewMatrix, projectionMatrix, currOpr, Mode.LOCAL, objectMatrix);
 
             if (ImGuizmo.isUsing()) {
                 float[] translation = new float[3];
                 float[] rotation    = new float[3];
-                float[] scale       = new float[3];
+                float[] scaleArr    = new float[3];
 
-                ImGuizmo.decomposeMatrixToComponents(objectMatrix, translation, rotation, scale);
+                ImGuizmo.decomposeMatrixToComponents(objectMatrix, translation, rotation, scaleArr);
 
                 ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXPosition(translation[0]);
                 ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYPosition(translation[1]);
 
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXScale(scale[0]);
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYScale(scale[1]);
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setRotation((float) Math.toRadians(rotation[2]));
+
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXScale(scaleArr[0]);
+                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYScale(scaleArr[1]);
             }
-        }
-        else {
-            ImGuizmo.enable(false);
         }
 
         ImGui.end();
@@ -668,9 +647,9 @@ public class EditorLayer {
                 transform.setXPosition(pos[0]);
                 transform.setYPosition(pos[1]);
             }
-            float[] rot = {transform.getRotation()};
+            float[] rot = {(float) (Math.toDegrees(transform.getRotation()) / PhysicsSystem.PPM)};
             if (ImGui.dragFloat("Rotation", rot)) {
-                transform.setRotation((float) rot[0] % 360);
+                transform.setRotation((float) Math.toRadians(rot[0] % 360));
             }
             float[] scale = {transform.getScaleX(), transform.getScaleY()};
             if (ImGui.dragFloat2("Scale", scale)) {

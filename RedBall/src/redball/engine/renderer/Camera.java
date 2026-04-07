@@ -18,13 +18,13 @@ public class Camera implements Serializable {
 
     public void adjustProjection(int width, int height) {
         projection.identity();
-        projection.ortho(0.0f, width, 0.0f, height, 0.1f, 100.0f);
+        projection.ortho((float) -width /2, (float) width /2, (float) -height /2, (float) height /2, 0.1f, 100.0f);
     }
 
     public Matrix4f getViewMat() {
         Vector3f cameraUp = new Vector3f(0.0f, 1.0f, 0.0f);
         Vector3f eye = new Vector3f(position.x, position.y, 20.0f);
-        Vector3f target = new Vector3f(position.x, position.y, 0.0f); // looking straight ahead
+        Vector3f target = new Vector3f(position.x, position.y, 0.0f);
 
         view.identity();
         view = view.lookAt(eye, target, cameraUp);

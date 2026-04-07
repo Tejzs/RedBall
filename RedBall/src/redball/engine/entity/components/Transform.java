@@ -54,19 +54,27 @@ public class Transform extends Component {
     public void setXScale(float xPos) {
         Rigidbody rb = this.gameObject.getComponent(Rigidbody.class);
         if (rb != null) {
-            rb.getBody().getFixture(0);
+            BodyFixture bodyFixture = rb.getBodyFixture();
+            rb.getBody().removeAllFixtures();
+            rb.physiosSystemSetBodyFixture(bodyFixture);
         }
         this.scale.x = xPos;
         super.markAsDirty();
     }
 
     public void setYScale(float yPos) {
+        Rigidbody rb = this.gameObject.getComponent(Rigidbody.class);
+        if (rb != null) {
+            BodyFixture bodyFixture = rb.getBodyFixture();
+            rb.getBody().removeAllFixtures();
+            rb.physiosSystemSetBodyFixture(bodyFixture);
+        }
         this.scale.y = yPos;
         super.markAsDirty();
     }
 
     public Matrix4f getMatrix() {
-        matrix.identity().translate(position).rotateZ((float) Math.toRadians(rotation)).scale(scale);
+        matrix.identity().translate(new Vector3f(getXPosition(), getYPosition(), position.z)).rotateZ((float) Math.toRadians(rotation)).scale(scale);
         return matrix;
     }
 
