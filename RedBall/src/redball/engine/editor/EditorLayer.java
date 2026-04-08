@@ -39,6 +39,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.reflections.Reflections.log;
 
@@ -64,6 +65,7 @@ public class EditorLayer {
 
     private static boolean compileSuccess = false;
     private static int fps = 0;
+    boolean saveClicked = false;
 
     private int currOpr = Operation.TRANSLATE;
     private float[] objectMatrix = new float[16];
@@ -72,6 +74,9 @@ public class EditorLayer {
 
     private static String[] componentList = null;
     private static Set<Class<? extends Component>> subclasses;
+
+    double clickTime = 0.0; // Time when the button was clicked
+    double waitSeconds = 2.0;
 
     private ImString nameBuffer = null;
     private String prevSelected = null;
@@ -445,19 +450,34 @@ public class EditorLayer {
     }
 
     void renderViewPort() {
-        ImGui.begin("Viewport");
+        ImGui.begin("Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
-        if (ImGui.button("Save") && !Engine.isPlaying()) {
-            SaveManager.save();
+        ImVec2 size = ImGui.getContentRegionAvail();
+        float buttonWidth = 60f;
+        float spacing = 5f;
+        int numButtons = 2;
+        float totalWidth = numButtons * buttonWidth + (numButtons - 1) * spacing;
+
+        ImGui.setCursorPosX((size.x - totalWidth) / 2);
+
+        if (ImGui.button("Save")) {
+            if (!Engine.isPlaying()) {
+                SaveManager.save();
+            }
+            clickTime = glfwGetTime();
+            saveClicked = !saveClicked;
         }
 
+        ImGui.sameLine();
         if (!Engine.isPlaying()) {
             if (ImGui.button("Play")) {
                 Engine.onPlay();
+                saveClicked = false;
             }
         } else {
             if (ImGui.button("Stop")) {
                 Engine.onStop();
+                saveClicked = false;
             }
         }
 
@@ -465,15 +485,17 @@ public class EditorLayer {
             currOpr = Operation.TRANSLATE;
         }
 
+        ImGui.sameLine();
         if (ImGui.radioButton("Rotate", currOpr == Operation.ROTATE)) {
             currOpr = Operation.ROTATE;
         }
 
+        ImGui.sameLine();
         if (ImGui.radioButton("Scale", currOpr == Operation.SCALE)) {
             currOpr = Operation.SCALE;
         }
 
-        ImVec2 size = ImGui.getContentRegionAvail();
+        ImGui.separator();
 
         float frameBufferWidth = RenderManager.getFrameBuffer().getWidth();
         float frameBufferHeight = RenderManager.getFrameBuffer().getHeight();
@@ -490,11 +512,14 @@ public class EditorLayer {
             renderHeight = size.x / aspect;
         }
 
-        ImVec2 cur = ImGui.getCursorPos();
-        ImGui.setCursorPos((size.x + cur.x - renderWidth) / 2, (25f + size.y + cur.y - renderHeight) / 2);
-
         ImVec2 cursorPos = ImGui.getCursorScreenPos();
+        float availX = ImGui.getContentRegionAvailX();
+        float offsetX = (availX - renderWidth) * 0.5f;
+        if (offsetX > 0) {
+            ImGui.setCursorPosX(ImGui.getCursorPosX() + offsetX);
+        }
 
+        ImGui.spacing();
         ImGui.image(RenderManager.getFrameBuffer().getTextureId(), new ImVec2(renderWidth, renderHeight), new ImVec2(0, 1), new ImVec2(1, 0));
 
         if (selected != null) {
@@ -517,8 +542,8 @@ public class EditorLayer {
 
             if (ImGuizmo.isUsing()) {
                 float[] translation = new float[3];
-                float[] rotation    = new float[3];
-                float[] scaleArr    = new float[3];
+                float[] rotation = new float[3];
+                float[] scaleArr = new float[3];
 
                 ImGuizmo.decomposeMatrixToComponents(objectMatrix, translation, rotation, scaleArr);
 
@@ -1075,34 +1100,67 @@ public class EditorLayer {
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 1f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 8f, 3f);
 
+        ImVec4 editColor = new ImVec4(0.3f, 0.7f, 1.0f, 1.0f);
+        ImVec4 playColor = new ImVec4(1.0f, 0.722f, 0.424f, 1.0f);
+        ImVec4 errorColor = new ImVec4(1.0f, 0.361f, 0.361f, 1.0f);
+        ImVec4 secondary = new ImVec4(0.604f, 0.604f, 0.604f, 1.0f);
+
         ImGui.begin("##StatusBar", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoBringToFrontOnFocus);
 
-        if (!Engine.isPlaying) {
-            ImGui.textColored(0.3f, 0.7f, 1.0f, 1.0f, "EDIT MODE");
-        } else {
-            ImGui.textColored(0.8f, 0.8f, 0.3f, 1.0f, "PLAY MODE");
-        }
-
-        ImGui.sameLine();
         String sceneName = AssetManager.getINSTANCE().currentWorkingScene;
         sceneName = sceneName.substring(sceneName.lastIndexOf("/") + 1);
-        ImGui.text(sceneName);
 
-        ImGui.sameLine();
-        if (compileSuccess) {
-            ImGui.textColored(0.4f, 0.8f, 0.4f, 1.0f, "Ready");
+        if (!Engine.isPlaying) {
+            if (saveClicked) {
+                ImGui.textColored(editColor, "Edit Mode");
+                ImGui.sameLine();
+                ImGui.textColored(secondary, " | Saved " + sceneName);
+                double currentTime = glfwGetTime();
+                if (currentTime - clickTime >= waitSeconds) {
+                    saveClicked = false;
+                }
+            } else {
+                ImGui.textColored(editColor, "Edit Mode");
+                ImGui.sameLine();
+                ImGui.textColored(secondary, " | " + sceneName);
+            }
         } else {
-            ImGui.textColored(0.9f, 0.3f, 0.3f, 1.0f, "Failed");
+            ImGui.textColored(playColor, "Play Mode");
+            ImGui.sameLine();
+            ImGui.textColored(secondary, " | " + sceneName + " | ");
+            ImGui.sameLine();
+            ImGui.textColored(0.5f, 0.5f, 0.5f, 1.0f, "Saving Disabled");
         }
 
-        ImGui.sameLine();
-        String rightText = fps + " FPS | Errors: " + ScriptManager.getErrorCount();
         float windowWidth = ImGui.getWindowSizeX();
-        float textWidth = ImGui.calcTextSize(rightText).x;
+
+        String fpsString = fps + " FPS | ";
+        String errIcons = getIcon("error");
+        String errString = " Errors: " + ScriptManager.getErrorCount();
+
 
         ImGui.sameLine();
-        ImGui.setCursorPosX(windowWidth - textWidth - 10);
-        ImGui.text(rightText);
+        ImGui.setCursorPosX(windowWidth - ImGui.calcTextSize(fpsString).x - ImGui.calcTextSize(errIcons).x - ImGui.calcTextSize(errString).x + 3);
+        ImGui.textColored(secondary, fpsString);
+
+        ImGui.sameLine();
+        ImGui.setCursorPosX(windowWidth - ImGui.calcTextSize(errIcons).x - ImGui.calcTextSize(errString).x + 5);
+        ImGui.setCursorPosY((height) / 2);
+        ImGui.setWindowFontScale(0.45f);
+        if (ScriptManager.getErrorCount() > 0) {
+            ImGui.textColored(errorColor, errIcons);
+        } else {
+            ImGui.textColored(0.7f, 0.7f, 0.7f, 1.0f, errIcons);
+        }
+        ImGui.setWindowFontScale(1.0f);
+
+        ImGui.sameLine();
+        ImGui.setCursorPosX(windowWidth - ImGui.calcTextSize(errString).x - 10);
+        if (ScriptManager.getErrorCount() > 0) {
+            ImGui.textColored(errorColor, errString);
+        } else {
+            ImGui.textColored(0.7f, 0.7f, 0.7f, 1.0f, errString);
+        }
 
         ImGui.end();
         ImGui.popStyleVar(3);
@@ -1113,6 +1171,7 @@ public class EditorLayer {
             case "folder" -> "\uF07B";
             case "file" -> "\uF1C9";
             case "chevron" -> "\uF054";
+            case "error" -> "\uf057";
             default -> "?";
         };
     }
