@@ -44,16 +44,17 @@ public class RenderManager {
     }
 
     public static void render(GameObject camera) {
-        Engine.getShader().setMat4f("projection", camera.getComponent(CameraComponent.class).getProjectionMatrix());
-        Engine.getShader().setMat4f("view", camera.getComponent(CameraComponent.class).getViewMatrix());
+        CameraComponent cameraComponent = camera.getComponent(CameraComponent.class);
+        Engine.getShader().setMat4f("projection", cameraComponent.getProjectionMatrix());
+        Engine.getShader().setMat4f("view", cameraComponent.getViewMatrix());
 
         Engine.getShader().initTextureSamplers();
 
         frameBuffer.bind();
 
         // CLEAR
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(cameraComponent.getCameraColor()[0], cameraComponent.getCameraColor()[1], cameraComponent.getCameraColor()[2], 1);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         for (BatchRenderer batchRenderer : batches) {
             batchRenderer.bindTextures();
@@ -71,7 +72,6 @@ public class RenderManager {
                 GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     }
 
     public static FrameBuffer getFrameBuffer() {

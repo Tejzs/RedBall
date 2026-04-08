@@ -72,6 +72,7 @@ public class EditorLayer {
     private float[] viewMatrix = new float[16];
     private float[] projectionMatrix = new float[16];
 
+
     private static String[] componentList = null;
     private static Set<Class<? extends Component>> subclasses;
 
@@ -295,13 +296,16 @@ public class EditorLayer {
             }
             tagComponent(go);
             transformComponent(go);
+            if (go.getComponent(CameraComponent.class) != null) {
+                cameraComponent(go);
+            }
             rigidBodyComponent(go);
             spriteRendererComponent(go);
 
             Iterator<Component> componentIterator = go.getComponents().listIterator();
             while (componentIterator.hasNext()) {
                 Component c = componentIterator.next();
-                if (!(c instanceof Rigidbody) && !(c instanceof Transform) && !(c instanceof Tag) && !(c instanceof SpriteRenderer) && c != null) {
+                if (!(c instanceof Rigidbody) && !(c instanceof Transform) && !(c instanceof Tag) && !(c instanceof SpriteRenderer) && c != null && !(c instanceof CameraComponent)) {
                     customComponents(c, componentIterator);
                 }
             }
@@ -693,6 +697,16 @@ public class EditorLayer {
                     tag.setTag(val.get());
                 }
             }
+        }
+    }
+
+    private void cameraComponent(GameObject go) {
+        if (ImGui.collapsingHeader("Camera Component", ImGuiTreeNodeFlags.DefaultOpen)) {
+            CameraComponent cameraComponent = go.getComponent(CameraComponent.class);
+            if (ImGui.checkbox("IsMain", cameraComponent.isMain())) {
+            }
+            ImGui.text("BackGround Color");
+            ImGui.colorEdit3("##BackGround Color", cameraComponent.getCameraColor());
         }
     }
 

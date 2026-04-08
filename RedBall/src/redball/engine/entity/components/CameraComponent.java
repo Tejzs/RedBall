@@ -13,6 +13,7 @@ public class CameraComponent extends Component {
 
     public Camera camera;
     public boolean isMain;
+    private float[] cameraColor = new float[]{0.196f, 0.254f, 0.431f};;
 
     public CameraComponent(int width, int height) {
         this.camera = new Camera(new Vector2f(0, 0));
@@ -39,5 +40,9 @@ public class CameraComponent extends Component {
 
     public Camera getCamera() {
         return camera;
+    }
+
+    public float[] getCameraColor() {
+        return cameraColor;
     }
 }
