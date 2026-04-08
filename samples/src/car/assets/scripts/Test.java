@@ -17,7 +17,7 @@ public class Test extends Component {
     public float minInterval = 0.5f;
     public float difficultyRate = 0.01f;
 
-    private static final float[] LANES = { 335f, 550f, 755f, 960f };
+    private static final float[] LANES = { 0, 50, 100, 150 };
 
     private float timer = 0f;
     private Random random = new Random();
@@ -56,7 +56,7 @@ public class Test extends Component {
         int laneIndex = available.get(random.nextInt(available.size()));
         float x = LANES[laneIndex];
 
-        ECSWorld.instantiate(carPrefab, new Vector2f(x, 800f));
+        ECSWorld.instantiate(carPrefab, new Vector2f(x, 0f));
 
         laneCooldown[laneIndex] = true;
         laneCooldownTimer[laneIndex] = LANE_COOLDOWN;

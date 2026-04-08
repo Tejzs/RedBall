@@ -31,6 +31,7 @@ import redball.engine.scene.SceneManager;
 import redball.engine.utils.PakWriter;
 import redball.engine.utils.ScriptManager;
 
+import javax.swing.plaf.ColorUIResource;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -88,6 +89,9 @@ public class EditorLayer {
 
     public static void init(Long window) {
         INSTANCE = new EditorLayer(window);
+
+        // Disable logging for reflections
+        System.setProperty("org.slf4j.simpleLogger.log.org.reflections", "off");
     }
 
     public EditorLayer(Long window) {
@@ -1067,18 +1071,49 @@ public class EditorLayer {
     private void renderConsole() {
         ImGui.begin("Console");
         ArrayDeque<LogLine> lines = LogCapture.getLogs();
+
+        float  width    = ImGui.getContentRegionAvailX();
+        var dl = ImGui.getWindowDrawList();
+        float  rowH     = 34.0f;
+        float  accentW  = 3.0f;
+        float  padX     = 8.0f;
+
         for (LogLine line : lines) {
-            if (line.isError()) {
-                ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 0.0f, 0.0f, 1.0f);
-                ImGui.text(line.getMessage());
-                ImGui.popStyleColor();
-            } else {
-                ImGui.text(line.getMessage());
-            }
+            ImVec2 cursor   = ImGui.getCursorScreenPos();
+
+            dl.addRectFilled(
+                    cursor.x, cursor.y,
+                    cursor.x + width, cursor.y + rowH,
+                    ImGui.colorConvertFloat4ToU32(0.13f, 0.13f, 0.14f, 1.0f)
+            );
+
+            dl.addRectFilled(
+                    cursor.x, cursor.y,
+                    cursor.x + accentW, cursor.y + rowH,
+                    ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f)
+            );
+
+            float iconX = cursor.x + accentW + padX;
+            ImGui.setWindowFontScale(0.7f);
+            float iconY = cursor.y + (rowH / 2f) - (ImGui.getFontSize() / 2f) + 4f;
+            dl.addText(ImGui.getFont(), ImGui.getFontSize(), iconX, iconY, ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f), getIcon("error"));
+            ImGui.setWindowFontScale(1.0f);
+
+            ImGui.setCursorScreenPos(cursor.x, cursor.y);
+            ImGui.invisibleButton("row_" + System.identityHashCode(line), width, rowH);
+//            if (line.isError()) {
+//                ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 0.0f, 0.0f, 1.0f);
+//                ImGui.text(line.getMessage());
+//                ImGui.popStyleColor();
+//            } else {
+//                ImGui.text(line.getMessage());
+//            }
         }
-        if (ImGui.button("Clear")) {
-            LogCapture.clear();
-        }
+//        if (ImGui.button("Clear")) {
+//            if (ScriptManager.getErrorCount() == 0) {
+//                LogCapture.clear();
+//            }
+//        }
         ImGui.end();
     }
 

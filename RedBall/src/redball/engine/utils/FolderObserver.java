@@ -12,14 +12,12 @@ public class FolderObserver {
 
     public static void start() throws Exception {
         File directory = new File(AssetManager.getINSTANCE().getScriptDirectory());
-        System.out.println(directory.getPath());
 
         FileAlterationObserver observer = new FileAlterationObserver(directory);
 
         observer.addListener(new FileAlterationListenerAdaptor() {
             @Override
             public void onFileChange(File file) {
-                System.out.println("File changed: " + file.getName());
                 ScriptManager.scheduleReload(file);
             }
 
@@ -45,7 +43,6 @@ public class FolderObserver {
         long pollingInterval = 1000;
         monitor = new FileAlterationMonitor(pollingInterval, observer);
         monitor.start();
-        System.out.println("Watching: " + directory.getAbsolutePath());
     }
 
     public static void stop() throws Exception {

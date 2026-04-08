@@ -5,12 +5,15 @@ import redball.engine.editor.EditorLayer;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Component;
+import redball.engine.logger.LogCapture;
 import redball.engine.scene.AssetManager;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -59,10 +62,7 @@ public class ScriptManager implements Runnable {
         for (String key : keys) {
             if (!key.endsWith(".class")) continue;
 
-            String fullName = key
-                    .replaceAll("^.*?out/", "")
-                    .replace("/", ".")
-                    .replace(".class", "");
+            String fullName = key.replaceAll("^.*?out/", "").replace("/", ".").replace(".class", "");
 
             ClassLoader old = loaderMap.get(fullName);
             if (old instanceof URLClassLoader ucl) ucl.close();
@@ -75,7 +75,8 @@ public class ScriptManager implements Runnable {
                             Class<?> c = findClass(name);
                             if (resolve) resolveClass(c);
                             return c;
-                        } catch (ClassNotFoundException ignored) {}
+                        } catch (ClassNotFoundException ignored) {
+                        }
                     }
                     return super.loadClass(name, resolve);
                 }
@@ -95,31 +96,26 @@ public class ScriptManager implements Runnable {
             };
 
             loaderMap.put(fullName, loader);
-            System.out.println(fullName);
             Class<?> clazz = loader.loadClass(fullName);
             classMap.put(fullName, clazz);
         }
     }
 
     public static Class<?> compile(File file) throws Exception {
+        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+        PrintStream customErr = new PrintStream(errStream);
+
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) throw new RuntimeException("No compiler — use JDK not JRE");
 
         new File(AssetManager.getINSTANCE().getCompileDirectory()).mkdirs();
-        int result = compiler.run(
-                null, System.out, System.err,
-                "-classpath", OUTPUT_DIR + File.pathSeparator + System.getProperty("java.class.path"),
-                "-sourcepath", "",
-                "-proc:none",
-                "-d", AssetManager.getINSTANCE().getCompileDirectory(),
-                file.getPath()
-        );
+        int result = compiler.run(null, System.out, customErr, "-classpath", OUTPUT_DIR + File.pathSeparator + System.getProperty("java.class.path"), "-sourcepath", "", "-proc:none", "-d", AssetManager.getINSTANCE().getCompileDirectory(), file.getPath());
         if (result == 0) {
             EditorLayer.setCompileSuccess(true);
             errorCount = 0;
         }
         if (result != 0) {
-            System.err.println("Compilation failed — check stderr above");
+            System.err.println(formatError(errStream.toString()));
             EditorLayer.setCompileSuccess(false);
             errorCount++;
         }
@@ -137,7 +133,8 @@ public class ScriptManager implements Runnable {
                         Class<?> c = findClass(name);
                         if (resolve) resolveClass(c);
                         return c;
-                    } catch (ClassNotFoundException ignored) {}
+                    } catch (ClassNotFoundException ignored) {
+                    }
                 }
                 return super.loadClass(name, resolve);
             }
@@ -204,5 +201,25 @@ public class ScriptManager implements Runnable {
 
     public static int getErrorCount() {
         return errorCount;
+    }
+
+    public static String formatError(String rawError) {
+        StringBuilder stringBuilder = new StringBuilder();
+        String[] lines = rawError.split("\n");
+
+        for (String line : lines) {
+            if (line.matches(".*\\.java:\\d+: error:.*")) {
+                String[] parts = line.split(":", 4);
+                String lineNum = parts[1].trim();
+                String message = parts[3].trim();
+
+                message = message.replace("cannot find symbol", "Unknown variable or method, did you forget to declare it?").replace("reached end of file while parsing", "Missing closing brace `}`").replace("';' expected", "Missing semicolon `;`").replace("illegal start of expression", "Syntax error — unexpected token here");
+                stringBuilder.append("Line ").append(lineNum).append(": ").append(message).append("\n");
+
+            } else if (!line.isBlank() && !line.startsWith("^") && !line.startsWith("Note:")) {
+                stringBuilder.append(line).append("\n");
+            }
+        }
+        return stringBuilder.isEmpty() ? "Compilation failed — no error details captured." : stringBuilder.toString().trim();
     }
 }

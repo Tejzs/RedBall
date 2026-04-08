@@ -28,13 +28,7 @@ public class LogCapture {
             }
 
             public void flush() {
-                String[] split = buffer.toString().split("\n");
-                for (String line : split) {
-                    if (!line.isEmpty()) {
-                        if (logs.size() >= MAX_LINES) logs.pollFirst();
-                        logs.addLast(new LogLine(line, isError));
-                    }
-                }
+                logs.addLast(new LogLine(buffer.toString(), isError));
                 buffer.setLength(0);
             }
         });
@@ -42,8 +36,8 @@ public class LogCapture {
     }
 
     public static void start() {
-//        System.setOut(captureLog(false));
-//        System.setErr(captureLog(true));
+        System.setOut(captureLog(false));
+        System.setErr(captureLog(true));
     }
 
     public static ArrayDeque<LogLine> getLogs() {
