@@ -200,7 +200,6 @@ public class EditorLayer {
     }
 
     public static void initComponentList() {
-        System.out.println("Checking");
         Reflections reflections = new Reflections("redball.engine");
         subclasses = reflections.getSubTypesOf(Component.class);
         for (String className : ScriptManager.getClassMap().keySet()) {
@@ -213,7 +212,6 @@ public class EditorLayer {
             if (cls.isAssignableFrom(Transform.class)) {
                 continue;
             }
-            System.out.println(cls.getSimpleName());
             componentList[index] = cls.getSimpleName();
             index++;
         }
@@ -452,13 +450,27 @@ public class EditorLayer {
     void renderViewPort() {
         ImGui.begin("Viewport", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
-        ImVec2 size = ImGui.getContentRegionAvail();
         float buttonWidth = 60f;
         float spacing = 5f;
         int numButtons = 2;
         float totalWidth = numButtons * buttonWidth + (numButtons - 1) * spacing;
 
-        ImGui.setCursorPosX((size.x - totalWidth) / 2);
+        if (ImGui.radioButton("Translate", currOpr == Operation.TRANSLATE)) {
+            currOpr = Operation.TRANSLATE;
+        }
+
+        ImGui.sameLine();
+        if (ImGui.radioButton("Rotate", currOpr == Operation.ROTATE)) {
+            currOpr = Operation.ROTATE;
+        }
+
+        ImGui.sameLine();
+        if (ImGui.radioButton("Scale", currOpr == Operation.SCALE)) {
+            currOpr = Operation.SCALE;
+        }
+
+        ImGui.sameLine();
+        ImGui.setCursorPosX((ImGui.getWindowSize().x - totalWidth) / 2);
 
         if (ImGui.button("Save")) {
             if (!Engine.isPlaying()) {
@@ -481,22 +493,10 @@ public class EditorLayer {
             }
         }
 
-        if (ImGui.radioButton("Translate", currOpr == Operation.TRANSLATE)) {
-            currOpr = Operation.TRANSLATE;
-        }
-
-        ImGui.sameLine();
-        if (ImGui.radioButton("Rotate", currOpr == Operation.ROTATE)) {
-            currOpr = Operation.ROTATE;
-        }
-
-        ImGui.sameLine();
-        if (ImGui.radioButton("Scale", currOpr == Operation.SCALE)) {
-            currOpr = Operation.SCALE;
-        }
-
         ImGui.separator();
 
+        ImVec2 size = ImGui.getContentRegionAvail();
+        ImVec2 cursorPos = ImGui.getCursorScreenPos();
         float frameBufferWidth = RenderManager.getFrameBuffer().getWidth();
         float frameBufferHeight = RenderManager.getFrameBuffer().getHeight();
 
@@ -512,23 +512,21 @@ public class EditorLayer {
             renderHeight = size.x / aspect;
         }
 
-        ImVec2 cursorPos = ImGui.getCursorScreenPos();
         float availX = ImGui.getContentRegionAvailX();
         float offsetX = (availX - renderWidth) * 0.5f;
         if (offsetX > 0) {
             ImGui.setCursorPosX(ImGui.getCursorPosX() + offsetX);
         }
 
-        ImGui.spacing();
         ImGui.image(RenderManager.getFrameBuffer().getTextureId(), new ImVec2(renderWidth, renderHeight), new ImVec2(0, 1), new ImVec2(1, 0));
 
         if (selected != null) {
             ImGuizmo.setOrthographic(true);
             ImGuizmo.setDrawList();
 
-            ImGuizmo.setRect(cursorPos.x, cursorPos.y, renderWidth, renderHeight);
+            ImGuizmo.setRect(cursorPos.x, cursorPos.y, size.x, size.y);
 
-            CameraComponent cam = ECSWorld.findGameObjectByName("Camera").getComponent(CameraComponent.class);
+            CameraComponent cam = ECSWorld.findGameObjectByTag("Camera").getComponent(CameraComponent.class);
 
             cam.getViewMatrix().get(viewMatrix);
             cam.getProjectionMatrix().get(projectionMatrix);
@@ -691,7 +689,9 @@ public class EditorLayer {
             ImGui.sameLine();
             ImString val = new ImString(tag.getTag(), 256);
             if (ImGui.inputText("##Tag", val)) {
-                tag.setTag(val.get());
+                if (!tag.getTag().equals("Camera")) {
+                    tag.setTag(val.get());
+                }
             }
         }
     }
@@ -989,7 +989,7 @@ public class EditorLayer {
                     ImGui.setDragDropPayload("String", asset.getPath());
                 }
                 ImGui.setWindowFontScale(0.3f);
-                ImGui.text(asset.isDirectory() ? "\uF07B" : "\uF15B");
+                ImGui.text(asset.isDirectory() ? getIcon("folder") : getIcon("file6+98"));
                 ImGui.setWindowFontScale(1.0f);
                 ImGui.text(asset.getName());
                 ImGui.endDragDropSource();
