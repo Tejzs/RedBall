@@ -1072,26 +1072,18 @@ public class EditorLayer {
         ImGui.begin("Console");
         ArrayDeque<LogLine> lines = LogCapture.getLogs();
 
-        float  width    = ImGui.getContentRegionAvailX();
+        float width = ImGui.getContentRegionAvailX();
         var dl = ImGui.getWindowDrawList();
-        float  rowH     = 34.0f;
-        float  accentW  = 3.0f;
-        float  padX     = 8.0f;
+        float rowH = 50.0f;
+        float accentW = 3.0f;
+        float padX = 8.0f;
 
         for (LogLine line : lines) {
-            ImVec2 cursor   = ImGui.getCursorScreenPos();
+            ImVec2 cursor = ImGui.getCursorScreenPos();
 
-            dl.addRectFilled(
-                    cursor.x, cursor.y,
-                    cursor.x + width, cursor.y + rowH,
-                    ImGui.colorConvertFloat4ToU32(0.13f, 0.13f, 0.14f, 1.0f)
-            );
+            dl.addRectFilled(cursor.x, cursor.y, cursor.x + width, cursor.y + rowH, ImGui.colorConvertFloat4ToU32(0.13f, 0.13f, 0.14f, 1.0f));
 
-            dl.addRectFilled(
-                    cursor.x, cursor.y,
-                    cursor.x + accentW, cursor.y + rowH,
-                    ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f)
-            );
+            dl.addRectFilled(cursor.x, cursor.y, cursor.x + accentW, cursor.y + rowH, ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f));
 
             float iconX = cursor.x + accentW + padX;
             ImGui.setWindowFontScale(0.7f);
@@ -1099,15 +1091,10 @@ public class EditorLayer {
             dl.addText(ImGui.getFont(), ImGui.getFontSize(), iconX, iconY, ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f), getIcon("error"));
             ImGui.setWindowFontScale(1.0f);
 
-            ImGui.setCursorScreenPos(cursor.x, cursor.y);
-            ImGui.invisibleButton("row_" + System.identityHashCode(line), width, rowH);
-//            if (line.isError()) {
-//                ImGui.pushStyleColor(ImGuiCol.Text, 1.0f, 0.0f, 0.0f, 1.0f);
-//                ImGui.text(line.getMessage());
-//                ImGui.popStyleColor();
-//            } else {
-//                ImGui.text(line.getMessage());
-//            }
+            float textX = iconX + ImGui.getFontSize() + 15;
+            float textY = cursor.y + (rowH / 2f) - (ImGui.getFontSize() / 2f) - 10;
+            dl.addText(ImGui.getFont(), ImGui.getFontSize(), textX, textY, 0xFFFFFFFF, line.getMessage());
+            ImGui.dummy(width, 0);
         }
 //        if (ImGui.button("Clear")) {
 //            if (ScriptManager.getErrorCount() == 0) {
@@ -1227,7 +1214,6 @@ public class EditorLayer {
 
     public void dispose() {
         imGuiGl3.destroyDeviceObjects();
-        imGuiGlfw.shutdown();
         ImGui.destroyContext();
     }
 

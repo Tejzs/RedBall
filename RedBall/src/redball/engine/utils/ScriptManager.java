@@ -6,6 +6,7 @@ import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Component;
 import redball.engine.logger.LogCapture;
+import redball.engine.logger.LogLine;
 import redball.engine.scene.AssetManager;
 
 import javax.tools.JavaCompiler;
@@ -17,6 +18,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +42,20 @@ public class ScriptManager implements Runnable {
         } catch (Exception e) {
             System.err.println(e);
         }
+    }
+
+    public static Class<?> compileAllFindClass(String filePath) throws Exception {
+        Class<?> found = null;
+        File dir = new File(AssetManager.getINSTANCE().getScriptDirectory());
+        File[] javaFiles = dir.listFiles((f, name) -> name.endsWith(".java"));
+        if (javaFiles == null || javaFiles.length == 0) return null;
+        for (File file : javaFiles) {
+            Class<?> clazz = compile(file);
+            if (file.getPath().equals(filePath)) {
+                found = clazz;
+            }
+        }
+        return found;
     }
 
     public static void compileAll(String scriptsDir) throws Exception {
@@ -112,12 +128,18 @@ public class ScriptManager implements Runnable {
         int result = compiler.run(null, System.out, customErr, "-classpath", OUTPUT_DIR + File.pathSeparator + System.getProperty("java.class.path"), "-sourcepath", "", "-proc:none", "-d", AssetManager.getINSTANCE().getCompileDirectory(), file.getPath());
         if (result == 0) {
             EditorLayer.setCompileSuccess(true);
-            errorCount = 0;
         }
         if (result != 0) {
-            System.err.println(formatError(errStream.toString()));
+            String[] errMsgs = formatError(errStream.toString()).split("(?=Line \\d+:)");
+            for (String errMsg : errMsgs) {
+                String className = "(" + file.getName();
+                String raw = className + errMsg.trim().replaceAll("\\d+ error[s]?\n?", "").replaceAll("\\s*symbol:\\s+\\w+\\s+[\\w<>]+\\s*", "").replaceAll("\\s*location:\\s+\\w+\\s+\\w+\\s+of type[\\w<>, ]+\\s*", "").replaceAll("\\s*location: class \\w+\\s*", "").replaceAll("\\s*\\^\\(\\)\\s*", "");
+                String token = raw.split("\n")[1].replaceAll(" ", "");
+                String cleanedError = "'" + token + "' " + raw.split("\n")[0];
+                System.err.println(cleanedError);
+                errorCount++;
+            }
             EditorLayer.setCompileSuccess(false);
-            errorCount++;
         }
 
         String fullName = getFullyQualifiedName(file);
@@ -162,7 +184,9 @@ public class ScriptManager implements Runnable {
     }
 
     private static void reloadDomain(File file) throws Exception {
-        Class<?> clazz = compile(file);
+        errorCount = 0;
+        LogCapture.clear();
+        Class<?> clazz = compileAllFindClass(file.getPath());
 
         for (GameObject go : ECSWorld.getGameObjects()) {
             for (Component c : new ArrayList<>(go.getComponents())) {
@@ -214,7 +238,7 @@ public class ScriptManager implements Runnable {
                 String message = parts[3].trim();
 
                 message = message.replace("cannot find symbol", "Unknown variable or method, did you forget to declare it?").replace("reached end of file while parsing", "Missing closing brace `}`").replace("';' expected", "Missing semicolon `;`").replace("illegal start of expression", "Syntax error — unexpected token here");
-                stringBuilder.append("Line ").append(lineNum).append(": ").append(message).append("\n");
+                stringBuilder.append(":").append(lineNum).append(") ").append(message).append("\n");
 
             } else if (!line.isBlank() && !line.startsWith("^") && !line.startsWith("Note:")) {
                 stringBuilder.append(line).append("\n");

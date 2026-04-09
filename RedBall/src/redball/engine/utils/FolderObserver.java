@@ -2,6 +2,7 @@ package redball.engine.utils;
 
 import org.apache.commons.io.monitor.*;
 import redball.engine.editor.EditorLayer;
+import redball.engine.logger.LogCapture;
 import redball.engine.scene.AssetManager;
 
 import java.io.File;

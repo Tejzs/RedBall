@@ -58,7 +58,6 @@ public class Engine {
         started = true;
         isBuild = build;
         AssetManager.init(path);
-        LogCapture.start();
         Executors.newSingleThreadExecutor().execute(new ScriptManager());
 
         windowManager = new WindowManager();
@@ -68,6 +67,7 @@ public class Engine {
             PakWriter.buildIndex();
         }
 
+        LogCapture.start();
         EditorLayer.init(windowManager.getWindow());
         KeyboardInput.init(windowManager.getWindow(), EditorLayer.getINSTANCE());
         shader = new Shader(AssetPool.getVertexShaderSource(), AssetPool.getFragmentShaderSource());
