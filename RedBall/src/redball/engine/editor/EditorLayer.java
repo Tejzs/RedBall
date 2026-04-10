@@ -648,11 +648,6 @@ public class EditorLayer {
                             Component c = go.addComponent(getComponent(n));
                             if (c instanceof SpriteRenderer) RenderManager.rebuild();
                             if (c instanceof Rigidbody) ((Rigidbody) c).createBody();
-                            try {
-                                c.start();
-                            } catch (Exception e) {
-                                System.err.println("ERROR: " + e);
-                            }
                         }
                     }
                     if (is_selected) {

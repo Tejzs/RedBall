@@ -28,7 +28,6 @@ public class RenderManager {
             batch.prepare();
             batches.add(batch);
         }
-        camera.start();
     }
 
     public static void rebuild() {
