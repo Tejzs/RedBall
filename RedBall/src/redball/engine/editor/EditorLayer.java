@@ -315,13 +315,6 @@ public class EditorLayer {
                 Object payload = ImGui.acceptDragDropPayload("String");
                 if (payload instanceof String dropped) {
                     Component component = go.addComponent(getComponent(dropped));
-                    if (component != null) {
-                        try {
-                            component.start();
-                        } catch (Exception e) {
-                            System.err.println("ERROR: " + e);
-                        }
-                    }
                 }
                 ImGui.endDragDropTarget();
             }
@@ -418,14 +411,7 @@ public class EditorLayer {
             if (ImGui.beginDragDropTarget()) {
                 Object payload = ImGui.acceptDragDropPayload("String");
                 if (payload instanceof String dropped) {
-                    Component component = go.addComponent(getComponent(dropped));
-                    if (component != null) {
-                        try {
-                            component.start();
-                        } catch (Exception e) {
-                            log.error("e: ", e);
-                        }
-                    }
+                    go.addComponent(getComponent(dropped));
                 }
                 ImGui.endDragDropTarget();
             }

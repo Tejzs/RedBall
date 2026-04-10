@@ -27,7 +27,7 @@ public class Test extends Component {
 
     @Override
     public void start() {
-        System.out.println("abhi");
+        System.out.println("start call");
     }
 
     @Override
