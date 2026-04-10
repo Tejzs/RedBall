@@ -6,7 +6,6 @@ import java.util.ArrayDeque;
 
 public class LogCapture {
     private static final ArrayDeque<LogLine> logs = new ArrayDeque<>();
-    private static final int MAX_LINES = 100;
     private static final PrintStream originalOut = System.out;
     private static final PrintStream originalErr = System.err;
 

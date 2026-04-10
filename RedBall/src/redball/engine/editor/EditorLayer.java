@@ -31,7 +31,6 @@ import redball.engine.scene.SceneManager;
 import redball.engine.utils.PakWriter;
 import redball.engine.utils.ScriptManager;
 
-import javax.swing.plaf.ColorUIResource;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -89,9 +88,6 @@ public class EditorLayer {
 
     public static void init(Long window) {
         INSTANCE = new EditorLayer(window);
-
-        // Disable logging for reflections
-        System.setProperty("org.slf4j.simpleLogger.log.org.reflections", "off");
     }
 
     public EditorLayer(Long window) {
@@ -504,7 +500,6 @@ public class EditorLayer {
         ImGui.separator();
 
         ImVec2 size = ImGui.getContentRegionAvail();
-        ImVec2 cursorPos = ImGui.getCursorScreenPos();
         float frameBufferWidth = RenderManager.getFrameBuffer().getWidth();
         float frameBufferHeight = RenderManager.getFrameBuffer().getHeight();
 
@@ -526,13 +521,15 @@ public class EditorLayer {
             ImGui.setCursorPosX(ImGui.getCursorPosX() + offsetX);
         }
 
+        ImVec2 cursorPos = ImGui.getCursorScreenPos();
+
         ImGui.image(RenderManager.getFrameBuffer().getTextureId(), new ImVec2(renderWidth, renderHeight), new ImVec2(0, 1), new ImVec2(1, 0));
 
         if (selected != null) {
             ImGuizmo.setOrthographic(true);
             ImGuizmo.setDrawList();
 
-            ImGuizmo.setRect(cursorPos.x, cursorPos.y, size.x, size.y);
+            ImGuizmo.setRect(cursorPos.x, cursorPos.y, renderWidth, renderHeight);
 
             CameraComponent cam = ECSWorld.findGameObjectByTag("Camera").getComponent(CameraComponent.class);
 
@@ -1074,33 +1071,49 @@ public class EditorLayer {
 
         float width = ImGui.getContentRegionAvailX();
         var dl = ImGui.getWindowDrawList();
-        float rowH = 50.0f;
+        float rowH = 40.0f;
         float accentW = 3.0f;
         float padX = 8.0f;
 
+        // Colors
+        final int COL_BG         = ImGui.colorConvertFloat4ToU32(0.13f, 0.13f, 0.14f, 1.0f);
+        final int COL_ACCENT_ERR = ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f);
+        final int COL_ACCENT_INF = ImGui.colorConvertFloat4ToU32(0.31f, 0.75f, 1.00f, 1.0f);
+        final int COL_ICON_ERR   = ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f);
+        final int COL_ICON_INF   = ImGui.colorConvertFloat4ToU32(0.31f, 0.75f, 1.00f, 1.0f);
+        final int COL_TEXT       = 0xFFD4D4D4;
+        final int COL_TEXT_ERR   = 0xFF8771F4;
+
+        if (ImGui.button("Clear")) {
+            if (ScriptManager.getErrorCount() == 0) {
+                LogCapture.clear();
+            }
+        }
+
         for (LogLine line : lines) {
+            boolean isError = line.isError();
+
+            int colAccent = isError ? COL_ACCENT_ERR : COL_ACCENT_INF;
+            int colIcon   = isError ? COL_ICON_ERR   : COL_ICON_INF;
+            int colText   = isError ? COL_TEXT_ERR   : COL_TEXT;
+            String icon   = isError ? getIcon("error") : getIcon("info");
+
             ImVec2 cursor = ImGui.getCursorScreenPos();
 
-            dl.addRectFilled(cursor.x, cursor.y, cursor.x + width, cursor.y + rowH, ImGui.colorConvertFloat4ToU32(0.13f, 0.13f, 0.14f, 1.0f));
+            dl.addRectFilled(cursor.x, cursor.y, cursor.x + width, cursor.y + rowH, COL_BG);
+            dl.addRectFilled(cursor.x, cursor.y, cursor.x + accentW, cursor.y + rowH, colAccent);
 
-            dl.addRectFilled(cursor.x, cursor.y, cursor.x + accentW, cursor.y + rowH, ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f));
-
+            int fontSize = 10;
             float iconX = cursor.x + accentW + padX;
-            ImGui.setWindowFontScale(0.7f);
-            float iconY = cursor.y + (rowH / 2f) - (ImGui.getFontSize() / 2f) + 4f;
-            dl.addText(ImGui.getFont(), ImGui.getFontSize(), iconX, iconY, ImGui.colorConvertFloat4ToU32(0.96f, 0.28f, 0.28f, 1.0f), getIcon("error"));
-            ImGui.setWindowFontScale(1.0f);
+            float iconY = cursor.y + (rowH / 2f) - ((fontSize - padX) / 2f);
+            dl.addText(ImGui.getFont(), fontSize, iconX, iconY, colIcon, icon);
 
-            float textX = iconX + ImGui.getFontSize() + 15;
-            float textY = cursor.y + (rowH / 2f) - (ImGui.getFontSize() / 2f) - 10;
-            dl.addText(ImGui.getFont(), ImGui.getFontSize(), textX, textY, 0xFFFFFFFF, line.getMessage());
-            ImGui.dummy(width, 0);
+            float textX = iconX + fontSize + 25;
+            float textY = cursor.y + (rowH / 2f)- ((fontSize + 5) / 2f);
+            dl.addText(ImGui.getFont(), fontSize + 5, textX, textY, colText, line.getMessage());
+
+            ImGui.dummy(width, rowH);
         }
-//        if (ImGui.button("Clear")) {
-//            if (ScriptManager.getErrorCount() == 0) {
-//                LogCapture.clear();
-//            }
-//        }
         ImGui.end();
     }
 
@@ -1208,6 +1221,7 @@ public class EditorLayer {
             case "file" -> "\uF1C9";
             case "chevron" -> "\uF054";
             case "error" -> "\uf057";
+            case "info" -> "\uf05a";
             default -> "?";
         };
     }

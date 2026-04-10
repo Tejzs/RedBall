@@ -26,6 +26,11 @@ public class Test extends Component {
     private static final float LANE_COOLDOWN = 1.5f;
 
     @Override
+    public void start() {
+        System.out.println("abhi");
+    }
+
+    @Override
     public void update(float dt) {
         timer += dt;
 

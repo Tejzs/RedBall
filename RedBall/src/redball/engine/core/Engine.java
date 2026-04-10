@@ -6,6 +6,7 @@ import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Rigidbody;
 import redball.engine.input.KeyboardInput;
+import redball.engine.logger.LogLine;
 import redball.engine.renderer.RenderManager;
 import redball.engine.renderer.Shader;
 import redball.engine.renderer.WindowManager;
@@ -37,6 +38,11 @@ public class Engine {
     public static void onStop() {
         isPlaying = false;
 
+        for (LogLine log : LogCapture.getLogs()) {
+            if (!log.isError()) {
+                LogCapture.getLogs().remove(log);
+            }
+        }
         PhysicsSystem.clear();
         ECSWorld.removeAll();
         RenderManager.clear();

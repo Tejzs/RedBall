@@ -82,6 +82,10 @@ public class WindowManager {
         SceneManager.init();
         SceneManager.loadDefault();
 
+        if (build) {
+            ECSWorld.start();
+        }
+
         while (!GLFW.glfwWindowShouldClose(window)) {
             ScriptManager.processReloads();
             double time = glfwGetTime();
@@ -113,7 +117,7 @@ public class WindowManager {
             fps++;
             if (time - lastSecond >= 1.0) {
                 setTitle("RedBall Engine " + AssetManager.getINSTANCE().currentWorkingScene);
-                EditorLayer.setFps((int) (fps ));
+                EditorLayer.setFps((int) (fps));
                 fps = 0;
                 lastSecond = time;
             }
