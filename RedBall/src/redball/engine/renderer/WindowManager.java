@@ -35,10 +35,10 @@ public class WindowManager {
 
         GLFWErrorCallback.createPrint(System.err).set();
 
-        if (!GLFW.glfwInit()) {
-            throw new IllegalArgumentException("Can't create window");
+        glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+        if (!glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
         }
-
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -46,6 +46,8 @@ public class WindowManager {
         // antialiasing: 2,4,8,16
         glfwWindowHint(GLFW_SAMPLES, 4);
 
+        glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+        
         window = GLFW.glfwCreateWindow(width, height, "Red Ball", MemoryUtil.NULL, MemoryUtil.NULL);
         if (window == MemoryUtil.NULL) {
             throw new RuntimeException("Can't create window");

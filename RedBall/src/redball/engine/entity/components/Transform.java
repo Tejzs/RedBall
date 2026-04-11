@@ -74,7 +74,7 @@ public class Transform extends Component {
     }
 
     public Matrix4f getMatrix() {
-        matrix.identity().translate(new Vector3f(getXPosition(), getYPosition(), position.z)).rotateZ((float) Math.toRadians(rotation)).scale(scale);
+        matrix.identity().translate(new Vector3f(getXPosition(), getYPosition(), position.z)).rotateZ(rotation).scale(scale);
         return matrix;
     }
 

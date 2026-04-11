@@ -48,6 +48,7 @@ public class EditorLayer {
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private String selected = null;
+    GameObject selectedGameObject = null;
     private final ImGuiIO io;
     private int selectedIndex = -1;
     private Long window;
@@ -68,6 +69,7 @@ public class EditorLayer {
     boolean saveClicked = false;
 
     private int currOpr = Operation.TRANSLATE;
+    private boolean localSpace = false;
     private float[] objectMatrix = new float[16];
     private float[] viewMatrix = new float[16];
     private float[] projectionMatrix = new float[16];
@@ -268,10 +270,11 @@ public class EditorLayer {
         renderViewPort();
 
         ImGui.begin("Inspector");
-        GameObject go = ECSWorld.findGameObjectByName(selected);
-        if (go != null) {
+        selectedGameObject = ECSWorld.findGameObjectByName(selected);
+
+        if (selectedGameObject != null) {
             if (!selected.equals(prevSelected)) {
-                nameBuffer = new ImString(go.getName(), 256);
+                nameBuffer = new ImString(selectedGameObject.getName(), 256);
                 prevSelected = selected;
             }
             ImGui.text("Name");
@@ -280,7 +283,7 @@ public class EditorLayer {
                 if (!nameBuffer.get().isEmpty()) {
                     int count = countDuplicates(nameBuffer.get());
                     if (count < 1) {
-                        go.setName(nameBuffer.get());
+                        selectedGameObject.setName(nameBuffer.get());
                         selected = nameBuffer.get();
                         prevSelected = nameBuffer.get();
                     } else {
@@ -288,21 +291,21 @@ public class EditorLayer {
                         while (countDuplicates(nameBuffer.get() + " (" + suffix + ")") > 0) {
                             suffix++;
                         }
-                        go.setName(nameBuffer.get() + " (" + suffix + ")");
-                        prevSelected = go.getName();
-                        selected = go.getName();
+                        selectedGameObject.setName(nameBuffer.get() + " (" + suffix + ")");
+                        prevSelected = selectedGameObject.getName();
+                        selected = selectedGameObject.getName();
                     }
                 }
             }
-            tagComponent(go);
-            transformComponent(go);
-            if (go.getComponent(CameraComponent.class) != null) {
-                cameraComponent(go);
+            tagComponent(selectedGameObject);
+            transformComponent(selectedGameObject);
+            if (selectedGameObject.getComponent(CameraComponent.class) != null) {
+                cameraComponent(selectedGameObject);
             }
-            rigidBodyComponent(go);
-            spriteRendererComponent(go);
+            rigidBodyComponent(selectedGameObject);
+            spriteRendererComponent(selectedGameObject);
 
-            Iterator<Component> componentIterator = go.getComponents().listIterator();
+            Iterator<Component> componentIterator = selectedGameObject.getComponents().listIterator();
             while (componentIterator.hasNext()) {
                 Component c = componentIterator.next();
                 if (!(c instanceof Rigidbody) && !(c instanceof Transform) && !(c instanceof Tag) && !(c instanceof SpriteRenderer) && c != null && !(c instanceof CameraComponent)) {
@@ -310,11 +313,11 @@ public class EditorLayer {
                 }
             }
 
-            addComponent(go);
+            addComponent(selectedGameObject);
             if (ImGui.beginDragDropTarget()) {
                 Object payload = ImGui.acceptDragDropPayload("String");
                 if (payload instanceof String dropped) {
-                    Component component = go.addComponent(getComponent(dropped));
+                    Component component = selectedGameObject.addComponent(getComponent(dropped));
                 }
                 ImGui.endDragDropTarget();
             }
@@ -460,6 +463,11 @@ public class EditorLayer {
         }
 
         ImGui.sameLine();
+        if (ImGui.checkbox("Space", localSpace)) {
+            localSpace = !localSpace;
+        }
+
+        ImGui.sameLine();
         ImGui.setCursorPosX((ImGui.getWindowSize().x - totalWidth) / 2);
 
         if (ImGui.button("Save")) {
@@ -511,7 +519,7 @@ public class EditorLayer {
 
         ImGui.image(RenderManager.getFrameBuffer().getTextureId(), new ImVec2(renderWidth, renderHeight), new ImVec2(0, 1), new ImVec2(1, 0));
 
-        if (selected != null) {
+        if (selectedGameObject != null) {
             ImGuizmo.setOrthographic(true);
             ImGuizmo.setDrawList();
 
@@ -522,12 +530,13 @@ public class EditorLayer {
             cam.getViewMatrix().get(viewMatrix);
             cam.getProjectionMatrix().get(projectionMatrix);
 
+            Transform t = selectedGameObject.getComponent(Transform.class);
+
             if (!ImGuizmo.isUsing()) {
-                Transform t = ECSWorld.findGameObjectByName(selected).getComponent(Transform.class);
                 t.getMatrix().get(objectMatrix);
             }
 
-            ImGuizmo.manipulate(viewMatrix, projectionMatrix, currOpr, Mode.LOCAL, objectMatrix);
+            ImGuizmo.manipulate(viewMatrix, projectionMatrix, currOpr, localSpace ? Mode.LOCAL : Mode.WORLD, objectMatrix);
 
             if (ImGuizmo.isUsing()) {
                 float[] translation = new float[3];
@@ -536,13 +545,13 @@ public class EditorLayer {
 
                 ImGuizmo.decomposeMatrixToComponents(objectMatrix, translation, rotation, scaleArr);
 
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXPosition(translation[0]);
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYPosition(translation[1]);
+                t.setXPosition(translation[0]);
+                t.setYPosition(translation[1]);
 
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setRotation((float) Math.toRadians(rotation[2]));
+                t.setRotation((float) Math.toRadians(rotation[2]));
 
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setXScale(scaleArr[0]);
-                ECSWorld.findGameObjectByName(selected).getComponent(Transform.class).setYScale(scaleArr[1]);
+                t.setXScale(scaleArr[0]);
+                t.setYScale(scaleArr[1]);
             }
         }
 
