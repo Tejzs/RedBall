@@ -5,6 +5,7 @@ import redball.engine.save.SaveManager;
 import redball.engine.utils.PakWriter;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class SceneManager {
@@ -31,12 +32,12 @@ public class SceneManager {
         }
     }
 
-    public static void loadDefault() {
+    public static void loadDefault() throws IOException {
         SaveManager.loadScene(sceneList.get(0));
         AssetManager.getINSTANCE().currentWorkingScene = sceneList.get(0);
     }
 
-    public static void switchScenes(int index) {
+    public static void switchScenes(int index) throws IOException {
         SaveManager.loadScene(sceneList.get(index));
     }
 

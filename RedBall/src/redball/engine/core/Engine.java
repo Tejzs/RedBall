@@ -71,15 +71,18 @@ public class Engine {
 
         if (build) {
             PakWriter.buildIndex();
+        } else {
+            LogCapture.start();
+            EditorLayer.init(windowManager.getWindow());
         }
 
-        LogCapture.start();
-        EditorLayer.init(windowManager.getWindow());
         KeyboardInput.init(windowManager.getWindow(), EditorLayer.getINSTANCE());
         shader = new Shader(AssetPool.getVertexShaderSource(), AssetPool.getFragmentShaderSource());
 
         ScriptManager.compileAll(AssetManager.getINSTANCE().getScriptDirectory());
-        EditorLayer.getINSTANCE().initComponentList();
+        if (!build) {
+            EditorLayer.initComponentList();
+        }
 
         windowManager.loop(shader, build);
     }

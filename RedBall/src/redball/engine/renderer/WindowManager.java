@@ -8,6 +8,7 @@ import redball.engine.editor.EditorLayer;
 import redball.engine.core.Engine;
 import redball.engine.core.PhysicsSystem;
 import redball.engine.entity.ECSWorld;
+import redball.engine.logger.LogCapture;
 import redball.engine.renderer.texture.Texture;
 import redball.engine.scene.AssetManager;
 import redball.engine.scene.SceneManager;
@@ -122,14 +123,12 @@ public class WindowManager {
                 lastSecond = time;
             }
         }
-        if (!Engine.isBuild) EditorLayer.getINSTANCE().dispose();
+        if (!Engine.isBuild) {
+            EditorLayer.getINSTANCE().dispose();
+            LogCapture.stop();
+        }
         glfwTerminate();
         FolderObserver.stop();
-    }
-
-    public void useScene(AbstractScene scene) {
-        scene.start();
-        this.scene = scene;
     }
 
     public void setVSync(int val) {

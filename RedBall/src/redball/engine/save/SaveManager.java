@@ -15,6 +15,7 @@ import redball.engine.utils.ScriptManager;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.IllegalFormatCodePointException;
 
 public class SaveManager {
     public static void save() {
@@ -25,42 +26,46 @@ public class SaveManager {
         }
     }
 
-    public static void loadScene(String scene) {
-        try (BufferedInputStream sceneIn = new BufferedInputStream(new FileInputStream(scene))) {
-            SaveObject saveObject = SaveObject.parseFrom(IOUtils.toByteArray(sceneIn));
-
-            if (PhysicsSystem.getWorld() != null) {
-                PhysicsSystem.clear();
-            }
-            ECSWorld.removeAll();
-            RenderManager.clear();
-            TextureManager.clear();
-
-            PhysicsSystem.init();
-            ECSWorld.setGameObjects(saveObject.getGameObjects());
-
-            // reload all textures from file paths
-            for (GameObject go : ECSWorld.getGameObjects()) {
-                SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
-                Rigidbody rb = go.getComponent(Rigidbody.class);
-                if (rb != null) {
-                    rb.createBody();
-                }
-
-                if (sr != null && sr.getFilePath() != null) {
-                    if (Engine.isBuild) {
-                        sr.setTexture(TextureManager.getTexture(sr.getFilePath(), PakWriter.getAsset(sr.getFilePath())));
-                    } else {
-                        sr.setTexture(TextureManager.getTexture(sr.getFilePath()));
-                    }
-                }
-            }
-
-            RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
-            AssetManager.getINSTANCE().currentWorkingScene = scene;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    public static void loadScene(String scene) throws IOException {
+        SaveObject saveObject = null;
+        BufferedInputStream sceneIn = null;
+        if (Engine.isBuild) {
+            saveObject = SaveObject.parseFrom(PakWriter.getAsset(scene));
+        } else {
+            sceneIn = new BufferedInputStream(new FileInputStream(scene));
+            saveObject = SaveObject.parseFrom(IOUtils.toByteArray(sceneIn));
         }
+
+
+        if (PhysicsSystem.getWorld() != null) {
+            PhysicsSystem.clear();
+        }
+        ECSWorld.removeAll();
+        RenderManager.clear();
+        TextureManager.clear();
+
+        PhysicsSystem.init();
+        ECSWorld.setGameObjects(saveObject.getGameObjects());
+
+        // reload all textures from file paths
+        for (GameObject go : ECSWorld.getGameObjects()) {
+            SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
+            Rigidbody rb = go.getComponent(Rigidbody.class);
+            if (rb != null) {
+                rb.createBody();
+            }
+
+            if (sr != null && sr.getFilePath() != null) {
+                if (Engine.isBuild) {
+                    sr.setTexture(TextureManager.getTexture(sr.getFilePath(), PakWriter.getAsset(sr.getFilePath())));
+                } else {
+                    sr.setTexture(TextureManager.getTexture(sr.getFilePath()));
+                }
+            }
+        }
+
+        RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
+        AssetManager.getINSTANCE().currentWorkingScene = scene;
     }
 
     public static void newScene(String sceneName) {

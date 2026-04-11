@@ -82,6 +82,48 @@ public class MyComponent extends Component {
 
 ---
 
+## 📦 Pak System
+
+During the build step, all game assets (sprites, scripts, scenes) are bundled into a single `.pak` file for distribution.
+
+### File Layout
+
+The `.pak` file is a flat binary format with a header followed by sequential asset chunks:
+
+```
+[4 bytes]  Number of chunks (int)
+--- Repeated for each chunk ---
+[2 bytes]  Asset name length
+[N bytes]  Asset name 
+[8 bytes]  Asset size in bytes 
+[N bytes]  Raw asset data
+```
+
+### Index Building
+
+At engine startup, `buildIndex()` scans the `.pak` file and populates a `HashMap<String, Long>` that maps each **asset path → byte offset** within the file. This means subsequent asset loads are O(1) seeks with no repeated scanning.
+
+### Asset Retrieval
+
+`getAsset(String path)` looks up the path in the index, seeks to the stored byte offset in the `.pak` file, reads the declared number of bytes, and returns the raw data. The caller is responsible for deserializing it (e.g. decoding a PNG, loading a scene, etc.).
+
+### Example (Pseudocode)
+
+```java
+// Writing
+PakWriter writer = new PakWriter("game.pak");
+writer.add("assets/player.png", imageBytes);
+writer.add("scenes/level1.scene", sceneBytes);
+writer.write(); // serializes header + all chunks
+
+// Reading
+PakReader reader = new PakReader("game.pak");
+reader.buildIndex();                          // scans offsets into HashMap
+byte[] data = reader.getAsset("assets/player.png");
+```
+> **TODO:** Planned to add cache storage to reduce file reads from `getAssets` to increase performance
+---
+
 ## 🛠️ Stack
 
 | Layer | Tech |
