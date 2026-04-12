@@ -31,7 +31,6 @@ public class PakWriter {
         System.out.println(files);
         long offset = 0;
         try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(AssetManager.getINSTANCE().getBuildDirectory() + "assets.pak")))) {
-
             // Number of chunks
             out.writeInt(files.size());
             offset += 4;

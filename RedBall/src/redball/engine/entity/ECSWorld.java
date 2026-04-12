@@ -3,9 +3,11 @@ package redball.engine.entity;
 import org.apache.commons.lang3.SerializationUtils;
 import org.joml.Vector2f;
 import redball.engine.core.Engine;
+import redball.engine.core.PhysicsSystem;
 import redball.engine.entity.components.*;
 import redball.engine.renderer.RenderManager;
 import redball.engine.renderer.texture.TextureManager;
+import redball.engine.save.SaveObject;
 import redball.engine.utils.PakWriter;
 
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ public class ECSWorld {
     // List of all gameobjects
     private static List<GameObject> gameObjects = new ArrayList<>();
     private static final List<GameObject> pendingAdd = new ArrayList<>();
+    private static final List<GameObject> pendingRemove = new ArrayList<>();
 
     public ECSWorld() {}
 
@@ -61,48 +64,12 @@ public class ECSWorld {
      * @param gameObject we want to remove
      * @return true if found else false
      */
-    public static boolean removeGameObject(GameObject gameObject) {
-        for (GameObject g : gameObjects) {
-            if (g.equals(gameObject)) {
-                gameObjects.remove(g);
-                assert true : "SUCCESS: REMOVED GAMEOBJECT";
-                return true;
-            }
-        }
-        assert false : "FAILED: TO REMOVE GAMEOBJECT";
-        return false;
+    public static void removeGameObject(GameObject gameObject) {
+        pendingRemove.add(gameObject);
     }
 
     public static void clearGameObjects() {
         gameObjects = new ArrayList<>();
-    }
-
-    /**
-     * @description removes gameobject by given name
-     * @param name of gameobject
-     * @return true if found else false
-     */
-    public static boolean removeGameObject(String name) {
-        GameObject go = findGameObjectByName(name);
-        if (go == null) {
-            assert false : "FAILED: TO REMOVE GAMEOBJECT, IS NULL";
-            return false;
-        }
-        return removeGameObject(go);
-    }
-
-    /**
-     * @description removes gameobject by given tag
-     * @param tag of gameobject
-     * @return true if found else false
-     */
-    public static boolean removeGameObjectByTag(String tag) {
-        GameObject go = findGameObjectByTag(tag);
-        if (go == null) {
-            assert false : "FAILED: TO REMOVE GAMEOBJECT, IS NULL";
-            return false;
-        }
-        return removeGameObject(go);
     }
 
     public static void removeAll() {
@@ -121,6 +88,14 @@ public class ECSWorld {
         if (!pendingAdd.isEmpty()) {
             gameObjects.addAll(pendingAdd);
             pendingAdd.clear();
+            RenderManager.rebuild();
+        }
+        if (!pendingRemove.isEmpty()) {
+            for (GameObject gameObject : pendingRemove) {
+                PhysicsSystem.getWorld().removeBody(gameObject.getComponent(Rigidbody.class).getBody());
+            }
+            gameObjects.removeAll(pendingRemove);
+            pendingRemove.clear();
             RenderManager.rebuild();
         }
     }
@@ -159,14 +134,16 @@ public class ECSWorld {
     }
 
     public static void instantiate(GameObject prefab, Vector2f position) {
-        GameObject go = SerializationUtils.deserialize(SerializationUtils.serialize(prefab));
-        go.getComponent(Transform.class).setXPosition(position.x);
-        go.getComponent(Transform.class).setYPosition(position.y);
-        SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
-        Rigidbody rb = go.getComponent(Rigidbody.class);
+        GameObject instance = SaveObject.parseFrom(new SaveObject(new ArrayList<>(List.of(prefab))).toByteArray()).getGameObjects().getFirst();
+
+        SpriteRenderer sr = instance.getComponent(SpriteRenderer.class);
+        Rigidbody rb = instance.getComponent(Rigidbody.class);
         if (rb != null) {
             rb.createBody();
         }
+
+        instance.getComponent(Transform.class).setXPosition(position.x);
+        instance.getComponent(Transform.class).setYPosition(position.y);
 
         if (sr != null && sr.getFilePath() != null) {
             if (Engine.isBuild) {
@@ -175,7 +152,7 @@ public class ECSWorld {
                 sr.setTexture(TextureManager.getTexture(sr.getFilePath()));
             }
         }
-        go.start();
-        pendingAdd.add(go);
+        instance.start();
+        pendingAdd.add(instance);
     }
 }

@@ -5,7 +5,6 @@ import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.MassType;
 import redball.engine.core.PhysicsSystem;
-import redball.engine.entity.GameObject;
 
 import java.io.Serial;
 import java.util.List;
@@ -122,11 +121,15 @@ public class Rigidbody extends Component {
         this.friction = friction;
     }
 
-    public Rigidbody isColliding() {
+    public boolean isCollided() {
+        return !PhysicsSystem.getWorld().getContacts(getBody()).isEmpty();
+    }
+
+    public Rigidbody getCollidedObject() {
         List<ContactConstraint<Body>> contacts = PhysicsSystem.getWorld().getContacts(getBody());
         for (ContactConstraint<Body> constraint : contacts) {
-            Body collidedBody = constraint.getBody2();
-            return (Rigidbody) collidedBody.getUserData();
+            Body other = constraint.getBody1() == getBody() ? constraint.getBody2() : constraint.getBody1();
+            return (Rigidbody) other.getUserData();
         }
         return null;
     }

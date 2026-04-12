@@ -60,7 +60,7 @@ public class WindowManager {
         glDisable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        setVSync(0);
+        setVSync(1);
 
         Texture.init();
 

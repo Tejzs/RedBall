@@ -65,6 +65,7 @@ public class SaveManager {
         }
 
         RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
+        ECSWorld.start();
         AssetManager.getINSTANCE().currentWorkingScene = scene;
     }
 

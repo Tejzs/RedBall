@@ -1,39 +1,55 @@
 package car.assets.scripts;
 
+import redball.engine.entity.ECSWorld;
 import redball.engine.entity.components.Component;
+import redball.engine.entity.components.Rigidbody;
 import redball.engine.entity.components.Transform;
 import redball.engine.input.KeyboardInput;
 import org.lwjgl.glfw.GLFW;
+import redball.engine.scene.SceneManager;
 
+import java.io.IOException;
 import java.io.Serial;
 
 public class CarController extends Component {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public Transform carTransform;
-    public float move;
+    public Transform transform;
+    public Rigidbody rigidbody;
+
+    public float clamp = 850;
     public float speed = 800f;
 
     @Override
     public void start() {
-        carTransform = gameObject.getComponent(Transform.class);
+        transform = gameObject.getComponent(Transform.class);
+        rigidbody = gameObject.getComponent(Rigidbody.class);
     }
 
     @Override
     public void update(float dt) {
-        if (carTransform.getXPosition() > 400) {
+        if (transform.getXPosition() > -clamp) {
             if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_LEFT)) {
-                carTransform.setXPosition(carTransform.getXPosition() - speed * dt);
+                transform.setXPosition(transform.getXPosition() - speed * dt);
             }
         }
-        if (carTransform.getXPosition() < 1535) {
+        if (transform.getXPosition() < clamp) {
             if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_RIGHT)) {
-                carTransform.setXPosition(carTransform.getXPosition() + speed * dt);
+                transform.setXPosition(transform.getXPosition() + speed * dt);
             }
         }
         if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_A)) {
-            carTransform.setXPosition(carTransform.getXPosition() + speed * dt);
+            transform.setXPosition(transform.getXPosition() + speed * dt);
+        }
+
+        if (rigidbody.isCollided()) {
+            ECSWorld.removeGameObject(gameObject);
+            try {
+                SceneManager.switchScenes(1);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

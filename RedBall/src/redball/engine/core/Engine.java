@@ -18,6 +18,9 @@ import redball.engine.utils.ScriptManager;
 
 import java.util.concurrent.Executors;
 
+import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
+
 public class Engine {
     private static boolean started = false;
     private static WindowManager windowManager = null;
@@ -98,5 +101,10 @@ public class Engine {
 
     public static boolean isPlaying() {
         return isPlaying;
+    }
+
+    public static void quit() {
+        glfwDestroyWindow(getWindowManager().getWindow());
+        glfwTerminate();
     }
 }

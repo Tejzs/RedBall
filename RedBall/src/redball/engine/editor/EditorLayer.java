@@ -26,6 +26,7 @@ import redball.engine.entity.components.Component;
 import redball.engine.renderer.RenderManager;
 import redball.engine.renderer.texture.Texture;
 import redball.engine.save.SaveManager;
+import redball.engine.save.SaveObject;
 import redball.engine.scene.AssetManager;
 import redball.engine.scene.SceneManager;
 import redball.engine.utils.PakWriter;
@@ -36,6 +37,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -399,7 +402,9 @@ public class EditorLayer {
                 }
                 if (ImGui.menuItem("Create Prefab")) {
                     try (BufferedOutputStream sceneOut = new BufferedOutputStream(new FileOutputStream(AssetManager.getINSTANCE().prefabDirectory + go.getName() + ".prefab"))) {
-                        IOUtils.write(SerializationUtils.serialize(go), sceneOut);
+                        ArrayList<GameObject> list = new ArrayList<>();
+                        list.add(go);
+                        IOUtils.write(new SaveObject(list).toByteArray(), sceneOut);
                     } catch (IOException e) {
                         System.out.println("ERROR:" + e);
                     }
@@ -854,8 +859,10 @@ public class EditorLayer {
 
                             Object stringPayload = ImGui.acceptDragDropPayload("String");
                             if (stringPayload instanceof String dropped) {
+
                                 try (BufferedInputStream prefab = new BufferedInputStream(new FileInputStream(dropped))) {
-                                    GameObject go = SerializationUtils.deserialize(IOUtils.toByteArray(prefab));
+                                    SaveObject saveObject = SaveObject.parseFrom(IOUtils.toByteArray(prefab));
+                                    GameObject go = saveObject.getGameObjects().getFirst();
                                     field.set(component, go);
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);

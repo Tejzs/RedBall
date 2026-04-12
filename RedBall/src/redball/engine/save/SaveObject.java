@@ -24,7 +24,6 @@ public class SaveObject implements Serializable {
         this.gameObjects = gameObjects;
     }
 
-
     public static SaveObject parseFrom(byte[] bytes) {
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes)) {
             @Override
