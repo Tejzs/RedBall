@@ -5,8 +5,7 @@
 ![status](https://img.shields.io/badge/status-in%20progress-orange) ![java](https://img.shields.io/badge/language-Java-red) ![opengl](https://img.shields.io/badge/renderer-OpenGL%20%2F%20GLSL-blue)
 
 ---
-
-![RedBall Engine](showcase/RedBall.png)
+![RedBall Engine](https://raw.githubusercontent.com/Abhineet1144/RedBall/refs/heads/feat/UI/showcase/RedBall.png)
 
 ---
 
