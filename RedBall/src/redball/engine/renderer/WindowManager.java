@@ -10,13 +10,11 @@ import redball.engine.core.PhysicsSystem;
 import redball.engine.entity.ECSWorld;
 import redball.engine.logger.LogCapture;
 import redball.engine.renderer.texture.Texture;
+import redball.engine.input.MouseInput;
 import redball.engine.scene.AssetManager;
 import redball.engine.scene.SceneManager;
-import redball.engine.utils.AbstractScene;
 import redball.engine.utils.FolderObserver;
 import redball.engine.utils.ScriptManager;
-
-import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -26,7 +24,6 @@ public class WindowManager {
     private int width = 1920;
     private int height = 1080;
     private int fpsCap = Integer.MAX_VALUE;
-    private AbstractScene scene;
 
     public void init() {
         if (window != 0L) {
@@ -69,8 +66,11 @@ public class WindowManager {
 
         glfwSetFramebufferSizeCallback(window, (win, w, h) -> {
             glViewport(0, 0, w, h);
-            width = w;
-            height = h;
+            if (Engine.isBuild) {
+                width = w;
+                height = h;
+            }
+            FrameBuffer.getINSTANCE().resize(w, h);
         });
     }
 
@@ -87,7 +87,10 @@ public class WindowManager {
 
         if (build) {
             ECSWorld.start();
+        } else {
+            glfwSetWindowTitle(window, "RedBall Engine " + AssetManager.getINSTANCE().currentWorkingScene);
         }
+        Engine.getShader().initTextureSamplers();
 
         while (!GLFW.glfwWindowShouldClose(window)) {
             ScriptManager.processReloads();
@@ -102,25 +105,25 @@ public class WindowManager {
                     PhysicsSystem.update((float) physicsStep);
                     accumulator -= physicsStep;
                 }
-                ECSWorld.update(Objects.requireNonNull(ECSWorld.findGameObjectByTag("Camera")), (float) deltaTime);
+                ECSWorld.update(ECSWorld.getCamera(), (float) deltaTime);
             } else {
                 accumulator = 0;
             }
 
-            RenderManager.render(Objects.requireNonNull(ECSWorld.findGameObjectByTag("Camera")));
+            RenderManager.render(ECSWorld.getCamera());
             if (!build) {
                 EditorLayer.getINSTANCE().renderDebug();
             }
 
             // SWAP
+            MouseInput.endFrame();
             glfwPollEvents();
             glfwSwapBuffers(window);
 
             // FPS Counter
             fps++;
             if (time - lastSecond >= 1.0) {
-                setTitle("RedBall Engine " + AssetManager.getINSTANCE().currentWorkingScene);
-                EditorLayer.setFps((int) (fps));
+                EditorLayer.setFps(fps);
                 fps = 0;
                 lastSecond = time;
             }
@@ -135,10 +138,6 @@ public class WindowManager {
 
     public void setVSync(int val) {
         glfwSwapInterval(val);
-    }
-
-    public void setTitle(String name) {
-        glfwSetWindowTitle(window, name);
     }
 
     public long getWindow() {

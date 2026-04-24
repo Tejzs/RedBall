@@ -1,10 +1,12 @@
 package redball.engine.renderer;
 
+import org.apache.commons.lang3.SerializationUtils;
 import redball.engine.core.Engine;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.CameraComponent;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +21,10 @@ public class RenderManager {
     private static FrameBuffer frameBuffer;
 
     public static void prepare(GameObject camera) {
+        for (BatchRenderer batch : batches) {
+            batch.dispose();
+        }
+        batches.clear();
         frameBuffer = FrameBuffer.getINSTANCE();
         List<GameObject> gos = ECSWorld.getGameObjects();
 
@@ -31,7 +37,11 @@ public class RenderManager {
     }
 
     public static void rebuild() {
+        for (BatchRenderer batch : batches) {
+            batch.dispose();
+        }
         batches.clear();
+
         List<GameObject> gos = ECSWorld.getGameObjects();
 
         for (int i = 0; i < gos.size(); i += MAX_ENTITIES) {
@@ -46,8 +56,6 @@ public class RenderManager {
         CameraComponent cameraComponent = camera.getComponent(CameraComponent.class);
         Engine.getShader().setMat4f("projection", cameraComponent.getProjectionMatrix());
         Engine.getShader().setMat4f("view", cameraComponent.getViewMatrix());
-
-        Engine.getShader().initTextureSamplers();
 
         frameBuffer.bind();
 
@@ -67,7 +75,7 @@ public class RenderManager {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(
                 0, 0, frameBuffer.getWidth(), frameBuffer.getHeight(),
-                0, 0, frameBuffer.getWidth(), frameBuffer.getHeight(),
+                0, 0, Engine.getWindowManager().getWidth(), Engine.getWindowManager().getHeight(),
                 GL_COLOR_BUFFER_BIT, GL_NEAREST
         );
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

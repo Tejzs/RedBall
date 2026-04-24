@@ -38,7 +38,7 @@ public class CarController extends Component {
             if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_RIGHT)) {
                 transform.setXPosition(transform.getXPosition() + speed * dt);
             }
-        }
+        }s
         if (KeyboardInput.isKeyDown(GLFW.GLFW_KEY_A)) {
             transform.setXPosition(transform.getXPosition() + speed * dt);
         }

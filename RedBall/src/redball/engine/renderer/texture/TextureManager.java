@@ -1,6 +1,8 @@
 package redball.engine.renderer.texture;
 
-import redball.engine.renderer.RenderManager;
+import redball.engine.core.Engine;
+import redball.engine.entity.components.SpriteRenderer;
+import redball.engine.utils.PakWriter;
 
 import java.util.*;
 
@@ -40,6 +42,15 @@ public class TextureManager {
     public static void bindTextures() {
         for (Texture texture : textureMap.values()) {
             texture.bindTexture();
+        }
+    }
+
+    public static void loadTextureForSprite(SpriteRenderer sr) {
+        if (sr == null || sr.getFilePath() == null) return;
+        if (Engine.isBuild) {
+            sr.setTexture(getTexture(sr.getFilePath(), PakWriter.getAsset(sr.getFilePath())));
+        } else {
+            sr.setTexture(getTexture(sr.getFilePath()));
         }
     }
 

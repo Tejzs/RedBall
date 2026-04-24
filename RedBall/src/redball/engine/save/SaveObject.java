@@ -1,6 +1,7 @@
 package redball.engine.save;
 
 import org.apache.commons.lang3.SerializationUtils;
+import redball.engine.core.Engine;
 import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.renderer.texture.TextureManager;
@@ -12,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class SaveObject implements Serializable {
+
     private final ArrayList<GameObject> gameObjects;
     private List<String> textures;
 
@@ -41,7 +43,6 @@ public class SaveObject implements Serializable {
             throw new RuntimeException("Failed to deserialize scene: " + e.getMessage(), e);
         }
     }
-
 
     public byte[] toByteArray() {
         return SerializationUtils.serialize(this);

@@ -12,6 +12,7 @@ import java.io.Serial;
 public class Menu extends Component {
     @Serial
     private static final long serialVersionUID = 1L;
+    pu
 
     @Override
     public void start() {

@@ -34,7 +34,9 @@ public class SceneManager {
 
     public static void loadDefault() throws IOException {
         SaveManager.loadScene(sceneList.get(0));
-        AssetManager.getINSTANCE().currentWorkingScene = sceneList.get(0);
+        if (!Engine.isBuild) {
+            AssetManager.getINSTANCE().currentWorkingScene = sceneList.get(0);
+        }
     }
 
     public static void switchScenes(int index) throws IOException {

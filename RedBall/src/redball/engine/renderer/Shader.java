@@ -12,6 +12,7 @@ import static org.lwjgl.opengl.GL20.glCreateProgram;
 
 public class Shader {
     private final int ID;
+    private final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
     public Shader(String vertexShaderSource, String fragmentShaderSource) {
         int vertex, fragment;
@@ -69,7 +70,7 @@ public class Shader {
     }
 
     public void setMat4f(String name, Matrix4f value) {
-        FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+        matrixBuffer.clear();
         value.get(matrixBuffer);
         glUniformMatrix4fv(glGetUniformLocation(ID, name), false, matrixBuffer);
     }

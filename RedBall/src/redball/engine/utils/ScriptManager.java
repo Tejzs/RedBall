@@ -6,7 +6,6 @@ import redball.engine.entity.ECSWorld;
 import redball.engine.entity.GameObject;
 import redball.engine.entity.components.Component;
 import redball.engine.logger.LogCapture;
-import redball.engine.logger.LogLine;
 import redball.engine.scene.AssetManager;
 
 import javax.tools.JavaCompiler;
@@ -18,7 +17,6 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +59,7 @@ public class ScriptManager implements Runnable {
     public static void compileAll(String scriptsDir) throws Exception {
         if (Engine.isBuild) {
             loadAllFromPak();
+            return;
         }
 
         File dir = new File(scriptsDir);

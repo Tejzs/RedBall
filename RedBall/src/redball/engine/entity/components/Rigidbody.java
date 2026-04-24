@@ -45,14 +45,11 @@ public class Rigidbody extends Component {
         getBody().setMass(type.getMassType());
         Transform t = gameObject.getComponent(Transform.class);
         if (t != null) {
-            body.getTransform().setTranslation(
-                    t.position.x / PPM,
-                    t.position.y / PPM
-            );
+            body.getTransform().setTranslation(t.position.x / PPM, t.position.y / PPM);
         }
     }
 
-    public void physiosSystemSetBodyFixture(BodyFixture bodyFixture) {
+    public void physicsSystemSetBodyFixture(BodyFixture bodyFixture) {
         Transform transform = this.gameObject.getComponent(Transform.class);
         getBody().removeAllFixtures();
         getBody().addFixture(bodyFixture.getShape(transform.scale.x / PPM, transform.scale.y / PPM));
@@ -85,7 +82,7 @@ public class Rigidbody extends Component {
     }
 
     public void setFixture(BodyFixture bodyFixture) {
-        this.bodyFixture =  bodyFixture;
+        this.bodyFixture = bodyFixture;
     }
 
     public BodyFixture getBodyFixture() {
@@ -145,11 +142,15 @@ public class Rigidbody extends Component {
 
         getBody().getTransform().setRotation(transform.rotation);
 
-        physiosSystemSetBodyFixture(bodyFixture);
+        physicsSystemSetBodyFixture(bodyFixture);
         physicsSystemSetMass(mass);
         physicsSystemSetBodyType(bodyType);
         physicsSystemSetBounce(bounciness);
         physicsSystemSetFriction(friction);
         PhysicsSystem.getWorld().addBody(body);
+    }
+
+    public void setBody(Body body) {
+        this.body = body;
     }
 }

@@ -1,16 +1,11 @@
 package redball.engine.renderer;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.*;
 
-import org.dyn4j.geometry.MassType;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.BufferUtils;
 import redball.engine.entity.GameObject;
-import redball.engine.entity.components.BodyType;
 import redball.engine.entity.components.Rigidbody;
 import redball.engine.entity.components.SpriteRenderer;
 import redball.engine.entity.components.Transform;
@@ -39,6 +34,7 @@ public class BatchRenderer {
     private static final int TEXTURE_ID_SIZE = 1;
     private static final int OVERALL_SIZE = POS_SIZE + COLOR_SIZE + TEXTURE_COORDS_SIZE + TEXTURE_ID_SIZE;
     private static final int OVERALL_STRIDE = OVERALL_SIZE * Float.BYTES;
+    private static int ebo;
 
     public int entityCount = 0;
     private int verticesAdded = 0;
@@ -48,6 +44,10 @@ public class BatchRenderer {
     private int hightest = 0;
     private int vao;
     int vbo;
+
+    private final Matrix4f matrix = new Matrix4f();
+    private Vector4f result = new Vector4f();
+    private final Vector3f pos = new Vector3f();
 
     private int indexCount = 0;
 
@@ -89,16 +89,15 @@ public class BatchRenderer {
             hightest = h + 1;
         }
 
-        int vao = glGenVertexArrays();
+        vao = glGenVertexArrays();
         vbo = glGenBuffers();
-        int EBO = glGenBuffers();
+        ebo = glGenBuffers();
 
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, verticesData, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexIndex, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, OVERALL_STRIDE, 0);
         glEnableVertexAttribArray(0);
@@ -173,17 +172,17 @@ public class BatchRenderer {
     private void updateComponentVertices(GameObject go, int off, float x, float y, int tx, int ty, int tId) {
         Rigidbody rb = go.getComponent(Rigidbody.class);
         Transform transform = go.getComponent(Transform.class);
-        Matrix4f matrix = new Matrix4f().translate(transform.position).rotateZ(transform.rotation).scale(transform.scale);
-        Vector4f result = matrix.transform(new Vector4f(x, y, 0, 1));
+        matrix.identity().translate(transform.position).rotateZ(transform.rotation).scale(transform.scale);
         if (rb != null && rb.getBody() != null) {
             org.dyn4j.geometry.Transform physTransform = rb.getBody().getTransform();
 
-            Vector3f pos = new Vector3f((float) physTransform.getTranslationX() * PPM, (float) physTransform.getTranslationY() * PPM, transform.position.z);
+            pos.set((float) physTransform.getTranslationX() * PPM, (float) physTransform.getTranslationY() * PPM, transform.position.z);
             float rotation = (float) physTransform.getRotationAngle();
 
-            matrix = new Matrix4f().translate(pos).rotateZ(rotation).scale(transform.scale);
-            result = matrix.transform(new Vector4f(x, y, 0, 1));
+            matrix.identity().translate(pos).rotateZ(rotation).scale(transform.scale);
         }
+        result.set(x, y, 0, 1);
+        matrix.transform(result);
         verticesData[off] = result.x;
         verticesData[off + 1] = result.y;
         verticesData[off + 2] = result.z;
@@ -214,5 +213,11 @@ public class BatchRenderer {
     public void render() {
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
+    }
+
+    public void dispose() {
+        glDeleteVertexArrays(vao);
+        glDeleteBuffers(vbo);
+        glDeleteBuffers(ebo);
     }
 }

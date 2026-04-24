@@ -1,6 +1,5 @@
 package car.assets.scripts;
 
-import redball.engine.entity.ECSWorld;
 import redball.engine.entity.components.Component;
 import redball.engine.entity.components.Transform;
 
@@ -20,7 +19,7 @@ public class EnemyCars extends Component {
     @Override
     public void update(float dt) {
         if (transform.getYPosition() < -800) {
-            ECSWorld.removeGameObject(this.gameObject);
+            gameObject.delete();
         }
     }
 }

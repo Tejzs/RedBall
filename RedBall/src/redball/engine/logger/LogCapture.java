@@ -35,8 +35,8 @@ public class LogCapture {
     }
 
     public static void start() {
-//        System.setOut(captureLog(false));
-//        System.setErr(captureLog(true));
+        System.setOut(captureLog(false));
+        System.setErr(captureLog(true));
     }
 
     public static ArrayDeque<LogLine> getLogs() {

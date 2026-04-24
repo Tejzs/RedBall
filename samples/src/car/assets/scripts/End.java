@@ -1,7 +1,6 @@
 package car.assets.scripts;
 
 import org.lwjgl.glfw.GLFW;
-import redball.engine.core.Engine;
 import redball.engine.entity.components.Component;
 import redball.engine.input.KeyboardInput;
 import redball.engine.scene.SceneManager;
@@ -11,11 +10,10 @@ import java.io.Serial;
 
 public class End extends Component {
     @Serial
-    private static final long serialVersionUID = 1L;
+    private statddic final long serialVersionUID = 1L;
 
     @Override
     public void start() {
-        super.start();
     }
 
     @Override

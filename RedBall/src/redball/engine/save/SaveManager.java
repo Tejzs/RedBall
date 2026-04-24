@@ -3,6 +3,7 @@ package redball.engine.save;
 import org.apache.commons.io.IOUtils;
 import org.joml.Vector3f;
 import redball.engine.core.Engine;
+import redball.engine.editor.EditorLayer;
 import redball.engine.entity.components.*;
 import redball.engine.scene.AssetManager;
 import redball.engine.core.PhysicsSystem;
@@ -15,7 +16,6 @@ import redball.engine.utils.ScriptManager;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.IllegalFormatCodePointException;
 
 public class SaveManager {
     public static void save() {
@@ -36,7 +36,6 @@ public class SaveManager {
             saveObject = SaveObject.parseFrom(IOUtils.toByteArray(sceneIn));
         }
 
-
         if (PhysicsSystem.getWorld() != null) {
             PhysicsSystem.clear();
         }
@@ -49,31 +48,27 @@ public class SaveManager {
 
         // reload all textures from file paths
         for (GameObject go : ECSWorld.getGameObjects()) {
-            SpriteRenderer sr = go.getComponent(SpriteRenderer.class);
             Rigidbody rb = go.getComponent(Rigidbody.class);
             if (rb != null) {
                 rb.createBody();
             }
 
-            if (sr != null && sr.getFilePath() != null) {
-                if (Engine.isBuild) {
-                    sr.setTexture(TextureManager.getTexture(sr.getFilePath(), PakWriter.getAsset(sr.getFilePath())));
-                } else {
-                    sr.setTexture(TextureManager.getTexture(sr.getFilePath()));
-                }
-            }
+            TextureManager.loadTextureForSprite(go.getComponent(SpriteRenderer.class));
         }
 
-        RenderManager.prepare(ECSWorld.findGameObjectByTag("Camera"));
+        RenderManager.prepare(ECSWorld.getCamera());
         ECSWorld.start();
-        AssetManager.getINSTANCE().currentWorkingScene = scene;
+        if (!Engine.isBuild) {
+            AssetManager.getINSTANCE().currentWorkingScene = scene;
+        }
+        ECSWorld.getCamera().getComponent(CameraComponent.class).camera.adjustProjection(Engine.getWindowManager().getWidth(), Engine.getWindowManager().getHeight());
     }
 
     public static void newScene(String sceneName) {
         // create default camera
         GameObject camera = new GameObject("Camera");
         camera.addComponent(new Transform(new Vector3f(0, 0, 0), 0f, new Vector3f(1, 1, 1)));
-        camera.addComponent(new CameraComponent(Engine.getWindowManager().getWidth(), Engine.getWindowManager().getHeight()));
+        camera.addComponent(new CameraComponent());
         camera.addComponent(new Tag("Camera"));
         ArrayList<GameObject> gameObjects = new ArrayList<>();
         gameObjects.add(camera);
